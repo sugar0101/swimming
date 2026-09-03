@@ -1,0 +1,46 @@
+{
+  "name": "functions",
+  "scripts": {
+    "lint": "eslint .",
+    "format:fix": "npx prettier --write .",
+    "format:check": "npx prettier --check .",
+    "build": "node ./scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "serve": "npx kill-port --port 8081,9099,9002,5001,5000,9199,4000 && npm run build && cross-env FUNCTIONS_DISCOVERY_TIMEOUT=120 npx firebase emulators:start --project swimming-639f1 --only functions,firestore,auth,storage --import ./local-firestore --export-on-exit ./local-firestore",
+    "serve-hosting": "npx kill-port --port 8081,9099,9002,5001,5000,9199,4000 && npm run build && cross-env FUNCTIONS_DISCOVERY_TIMEOUT=120 npx firebase emulators:start --project swimming-639f1 --only functions,firestore,auth,storage,hosting --import ./local-firestore",
+    "dev": "node ./scripts/build.mjs --watch",
+    "shell": "npm run build && firebase functions:shell --project swimming-639f1",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions --project swimming-639f1",
+    "logs": "firebase functions:log --project swimming-639f1"
+  },
+  "engines": {
+    "node": "22"
+  },
+  "main": "lib/index.js",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "firebase-admin": "^12.4.0",
+    "firebase-functions": "^5.1.1",
+    "lodash": "^4.17.21",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/lodash": "^4.14.201",
+    "@types/node": "^20.19.24",
+    "@typescript-eslint/eslint-plugin": "^5.55.0",
+    "@typescript-eslint/parser": "^5.55.0",
+    "cross-env": "^10.1.0",
+    "esbuild": "^0.25.0",
+    "eslint": "^8.36.0",
+    "eslint-config-prettier": "^8.7.0",
+    "prettier": "2.8.4",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  },
+  "private": true
+}

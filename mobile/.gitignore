@@ -1,0 +1,16 @@
+# Expo / React Native
+node_modules/
+.expo/
+dist/
+web-build/
+*.log
+
+# Native build output (se regenera con `npm run prebuild` / `npm run apk`)
+android/
+ios/
+*.apk
+*.aab
+*.keystore
+
+# Env
+.env*.local

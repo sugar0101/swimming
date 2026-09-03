@@ -1,0 +1,253 @@
+// app global css in SCSS form
+// Tokens y utilidades derivados de docs/design-dna.json.
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  --sw-primary: #137cb8;
+  --sw-primary-tint: #e6f3fb;
+  --sw-primary-border: #b9ddf2;
+
+  --sw-bg: #ffffff;
+  --sw-surface-2: #f5f6f8;
+  --sw-border: #e5e7eb;
+  --sw-border-strong: #d1d5db;
+  --sw-text: #111827;
+  --sw-text-2: #6b7280;
+  --sw-text-3: #9ca3af;
+
+  --sw-success: #16a34a;
+  --sw-success-tint: #dcfce7;
+  --sw-warning: #d97706;
+  --sw-warning-tint: #fef3c7;
+  --sw-danger: #dc2626;
+  --sw-danger-tint: #fee2e2;
+
+  --sw-font-heading: #{$font-heading};
+  --sw-font-body: #{$font-body};
+
+  --sw-radius-sm: 8px;
+  --sw-radius-md: 12px;
+  --sw-radius-lg: 16px;
+
+  --sw-shadow-sheet: 0 -8px 24px rgba(17, 24, 39, 0.1);
+  --sw-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+html,
+body {
+  background: var(--sw-bg);
+  color: var(--sw-text);
+  font-family: var(--sw-font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+.sw-heading {
+  font-family: var(--sw-font-heading);
+  letter-spacing: -0.015em;
+}
+
+// Overline de sección: mayúsculas pequeñas con punto de color delante,
+// como los "DIETARY STYLES" / "DAY 1" de la referencia.
+.sw-overline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sw-text-2);
+
+  &::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--sw-dot, var(--sw-primary));
+    flex-shrink: 0;
+  }
+
+  &--plain::before {
+    display: none;
+  }
+}
+
+// Tarjeta plana: blanco + borde 1px, sin sombra.
+.sw-card {
+  background: var(--sw-bg);
+  border: 1px solid var(--sw-border);
+  border-radius: var(--sw-radius-md);
+}
+
+// Píldora de estado con tinte.
+.sw-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+
+  &--success {
+    background: var(--sw-success-tint);
+    color: #166534;
+  }
+  &--warning {
+    background: var(--sw-warning-tint);
+    color: #92400e;
+  }
+  &--danger {
+    background: var(--sw-danger-tint);
+    color: #991b1b;
+  }
+  &--info {
+    background: var(--sw-primary-tint);
+    color: #0e4f7e;
+  }
+}
+
+// Botones: primario relleno, secundario con borde, terciario píldora pequeña.
+.sw-btn {
+  font-family: var(--sw-font-body);
+  font-weight: 600;
+  border-radius: 10px;
+  min-height: 46px;
+  text-transform: none;
+  letter-spacing: 0;
+
+  .q-btn__content {
+    font-size: 0.9375rem;
+  }
+
+  &--secondary {
+    background: var(--sw-bg);
+    color: var(--sw-text);
+    border: 1px solid var(--sw-border);
+  }
+}
+
+.sw-chip-btn {
+  min-height: 30px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--sw-border);
+  background: var(--sw-bg);
+  color: var(--sw-text);
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+
+  .q-btn__content {
+    font-size: 0.75rem;
+  }
+
+  &--primary {
+    border-color: var(--sw-primary-border);
+    background: var(--sw-primary-tint);
+    color: #0e4f7e;
+  }
+}
+
+// Campos de formulario: etiqueta overline encima, control gris claro.
+.sw-field {
+  .sw-field__label {
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .q-field__control {
+    height: 46px;
+    min-height: 46px;
+    border-radius: 10px;
+    background: var(--sw-surface-2);
+    padding: 0 14px;
+
+    &::before {
+      border-color: var(--sw-border);
+    }
+    &::after {
+      border-width: 1px;
+    }
+  }
+
+  .q-field__native,
+  .q-field__input {
+    font-family: var(--sw-font-body);
+    font-size: 0.9375rem;
+    color: var(--sw-text);
+    padding: 0;
+  }
+
+  .q-field__native::placeholder {
+    color: var(--sw-text-3);
+  }
+
+  .q-field--focused .q-field__control::before {
+    border-color: var(--sw-primary);
+  }
+
+  .q-field__bottom {
+    padding: 4px 2px 0;
+    font-size: 0.75rem;
+  }
+
+  .q-field__prefix {
+    color: var(--sw-text-2);
+    padding-right: 4px;
+  }
+}
+
+// Hoja inferior (bottom sheet) para los formularios.
+.sw-sheet {
+  width: 100%;
+  max-width: 640px;
+  border-radius: var(--sw-radius-lg) var(--sw-radius-lg) 0 0 !important;
+  box-shadow: var(--sw-shadow-sheet);
+  padding: 8px 20px 20px;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom));
+
+  &__grip {
+    width: 36px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--sw-border-strong);
+    margin: 4px auto 14px;
+  }
+}
+
+@media (min-width: 600px) {
+  .sw-sheet {
+    border-radius: var(--sw-radius-lg) !important;
+    margin-bottom: 24px;
+  }
+}
+
+.sw-divider {
+  height: 1px;
+  background: var(--sw-border);
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

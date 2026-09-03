@@ -1,0 +1,14 @@
+{
+  "name": "swimming-root",
+  "private": true,
+  "description": "Atajos desde la raíz: cada script delega en app/, functions/ o mobile/.",
+  "scripts": {
+    "dev": "npm --prefix app run dev",
+    "build": "npm --prefix app run build",
+    "deploy": "npm --prefix app run build && firebase deploy --only hosting --project swimming-639f1",
+    "deploy:rules": "firebase deploy --only firestore,database --project swimming-639f1",
+    "emulators": "npm --prefix functions run serve",
+    "apk": "npm --prefix mobile run apk",
+    "lint": "npm --prefix app run lint && npm --prefix functions run lint"
+  }
+}

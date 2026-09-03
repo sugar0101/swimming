@@ -1,0 +1,36 @@
+{
+  "name": "swimming-mobile",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "devices": "adb devices -l",
+    "reverse": "adb reverse tcp:8081 tcp:8081 && adb reverse tcp:9000 tcp:9000",
+    "android": "expo run:android --device",
+    "prestart": "adb reverse tcp:8081 tcp:8081 && adb reverse tcp:9000 tcp:9000",
+    "start": "expo start --dev-client",
+    "logs": "adb logcat \"*:S\" ReactNativeJS:V ReactNative:V",
+    "uninstall": "adb uninstall com.swimmingiscool.app",
+    "prebuild": "expo prebuild --platform android --clean",
+    "apk": "node scripts/build-apk.mjs",
+    "build:apk": "eas build --profile preview --platform android",
+    "build:apk:local": "eas build --profile preview --platform android --local",
+    "lint": "tsc --noEmit",
+    "ios": "expo run:ios"
+  },
+  "dependencies": {
+    "expo": "~52.0.0",
+    "expo-asset": "~11.0.5",
+    "expo-constants": "~17.0.8",
+    "expo-dev-client": "~5.0.20",
+    "expo-status-bar": "~2.0.1",
+    "react": "18.3.1",
+    "react-native": "0.76.9",
+    "react-native-safe-area-context": "4.12.0",
+    "react-native-webview": "13.12.5"
+  },
+  "devDependencies": {
+    "@types/react": "~18.3.12",
+    "typescript": "~5.3.3"
+  },
+  "private": true
+}

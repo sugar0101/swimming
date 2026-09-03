@@ -1,0 +1,22 @@
+// Quasar SCSS (& Sass) Variables
+// --------------------------------------------------
+// Tokens derivados de docs/design-dna.json (Vitality → Swimming is Cool).
+$generic-border-radius: 12px !default;
+
+$font-heading: 'Plus Jakarta Sans', 'SF Pro Display', system-ui, sans-serif;
+$font-body: 'Inter', 'SF Pro Text', system-ui, sans-serif;
+
+$primary: #137cb8;
+$secondary: #e6f3fb;
+$accent: #137cb8;
+
+$dark: #111827;
+$dark-page: #121212;
+
+$positive: #16a34a;
+$negative: #dc2626;
+$info: #137cb8;
+$warning: #d97706;
+
+$body-font-size: 15px;
+$typography-font-family: $font-body;

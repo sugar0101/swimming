@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "app",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["quasar", "dev"],
+      "cwd": "app",
+      "port": 9000
+    }
+  ]
+}

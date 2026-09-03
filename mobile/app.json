@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "Swimming is Cool",
+    "slug": "swimming-mobile",
+    "version": "1.0.0",
+    "orientation": "default",
+    "icon": "./assets/icon.png",
+    "scheme": "swimming",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": false,
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "android": {
+      "package": "com.swimmingiscool.app",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "permissions": [
+        "INTERNET"
+      ]
+    },
+    "plugins": [
+      "expo-dev-client",
+      "expo-asset"
+    ],
+    "extra": {
+      "//": "Sobrescribe estos valores sin tocar código. En dev usa la IP LAN de tu PC (no localhost, el teléfono no lo resuelve).",
+      "appUrl": "https://swimming-639f1.web.app",
+      "devAppUrl": "http://192.168.1.12:9000"
+    }
+  }
+}

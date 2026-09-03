@@ -1,0 +1,25 @@
+## Compiled JavaScript files
+**/*.js
+**/*.js.map
+!scripts/**/*.mjs
+!.eslintrc.js
+
+lib/**/*.json
+
+# Typescript v1 declaration files
+typings/
+
+node_modules/
+
+.vscode/
+
+.env*
+
+# MacOS Files
+.DS_Store
+
+# Build de esbuild: lib/ es artefacto generado, no se versiona
+lib/
+
+# Logs de los emuladores
+*.log
