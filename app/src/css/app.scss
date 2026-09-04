@@ -1,20 +1,25 @@
 // app global css in SCSS form
-// Tokens y utilidades derivados de docs/design-dna.json.
+// Sistema de diseño: minimalista tipo shadcn — superficies blancas sobre un
+// fondo gris muy claro, bordes de 1px, radios generosos y botones píldora.
+// El azul océano del logo es el único color de marca.
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
   --sw-primary: #137cb8;
-  --sw-primary-tint: #e6f3fb;
-  --sw-primary-border: #b9ddf2;
+  --sw-primary-strong: #0e6ba3;
+  --sw-primary-tint: #e8f4fb;
+  --sw-primary-border: #bfdff2;
 
+  // Fondo de página gris frío; las tarjetas blancas flotan encima.
+  --sw-bg-page: #f6f7f9;
   --sw-bg: #ffffff;
-  --sw-surface-2: #f5f6f8;
+  --sw-surface-2: #f4f5f7;
   --sw-border: #e5e7eb;
   --sw-border-strong: #d1d5db;
-  --sw-text: #111827;
-  --sw-text-2: #6b7280;
-  --sw-text-3: #9ca3af;
+  --sw-text: #0f172a;
+  --sw-text-2: #64748b;
+  --sw-text-3: #94a3b8;
 
   --sw-success: #16a34a;
   --sw-success-tint: #dcfce7;
@@ -26,11 +31,16 @@
   --sw-font-heading: #{$font-heading};
   --sw-font-body: #{$font-body};
 
-  --sw-radius-sm: 8px;
-  --sw-radius-md: 12px;
-  --sw-radius-lg: 16px;
+  --sw-radius-sm: 10px;
+  --sw-radius-md: 14px;
+  --sw-radius-lg: 18px;
 
-  --sw-shadow-sheet: 0 -8px 24px rgba(17, 24, 39, 0.1);
+  // Anillo de foco estilo shadcn: borde primario + halo suave.
+  --sw-ring: 0 0 0 3px rgba(19, 124, 184, 0.16);
+
+  --sw-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --sw-shadow-md: 0 4px 16px rgba(16, 24, 40, 0.08);
+  --sw-shadow-sheet: 0 -8px 24px rgba(16, 24, 40, 0.1);
   --sw-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   // Muelle suave (leve rebote) para la entrada de las hojas.
   --sw-ease-spring: cubic-bezier(0.34, 1.16, 0.3, 1);
@@ -38,7 +48,7 @@
 
 html,
 body {
-  background: var(--sw-bg);
+  background: var(--sw-bg-page);
   color: var(--sw-text);
   font-family: var(--sw-font-body);
   -webkit-font-smoothing: antialiased;
@@ -52,8 +62,44 @@ h3,
   letter-spacing: -0.015em;
 }
 
-// Overline de sección: mayúsculas pequeñas con punto de color delante,
-// como los "DIETARY STYLES" / "DAY 1" de la referencia.
+// ————— Estructura de página —————
+// Todas las páginas comparten el mismo carril central.
+// Mismo carril central en TODAS las secciones: el contenido nunca cambia
+// de ancho al pasar de un tab a otro.
+.sw-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 16px calc(48px + env(safe-area-inset-bottom));
+}
+
+// Alias histórico: hoy todas las páginas comparten el mismo ancho.
+.sw-page--wide {
+  max-width: 1100px;
+}
+
+.sw-page__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.sw-page__title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.sw-page__subtitle {
+  margin-top: 2px;
+  font-size: 0.8125rem;
+  color: var(--sw-text-2);
+}
+
+// Overline de sección: mayúsculas pequeñas con punto de color delante.
 .sw-overline {
   display: inline-flex;
   align-items: center;
@@ -78,11 +124,26 @@ h3,
   }
 }
 
-// Tarjeta plana: blanco + borde 1px, sin sombra.
+// Tarjeta: blanco + borde 1px + sombra apenas perceptible.
 .sw-card {
   background: var(--sw-bg);
   border: 1px solid var(--sw-border);
-  border-radius: var(--sw-radius-md);
+  border-radius: var(--sw-radius-lg);
+  box-shadow: var(--sw-shadow-sm);
+}
+
+// Cabecera de tabla-tarjeta: micro-mayúsculas grises sobre las columnas.
+.sw-thead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--sw-border);
+  font-size: 0.6563rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--sw-text-3);
 }
 
 // Píldora de estado con tinte.
@@ -91,7 +152,7 @@ h3,
   align-items: center;
   gap: 4px;
   height: 22px;
-  padding: 0 8px;
+  padding: 0 9px;
   border-radius: 999px;
   font-size: 0.6875rem;
   font-weight: 600;
@@ -112,16 +173,18 @@ h3,
   }
   &--info {
     background: var(--sw-primary-tint);
-    color: #0e4f7e;
+    color: #0e5c8a;
   }
 }
 
-// Botones: primario relleno, secundario con borde, terciario píldora pequeña.
+// ————— Botones —————
+// Todos píldora (full rounded). Primario azul, secundario blanco con borde.
 .sw-btn {
   font-family: var(--sw-font-body);
   font-weight: 600;
-  border-radius: 10px;
-  min-height: 46px;
+  border-radius: 999px;
+  min-height: 44px;
+  padding: 0 20px;
   text-transform: none;
   letter-spacing: 0;
 
@@ -133,6 +196,25 @@ h3,
     background: var(--sw-bg);
     color: var(--sw-text);
     border: 1px solid var(--sw-border);
+    box-shadow: var(--sw-shadow-sm);
+  }
+}
+
+// Botón compacto de cabecera de página/sección.
+.sw-btn-sm {
+  font-family: var(--sw-font-body);
+  font-weight: 600;
+  border-radius: 999px;
+  min-height: 36px;
+  height: 36px;
+  padding: 0 16px;
+  text-transform: none;
+  letter-spacing: 0;
+  flex-shrink: 0;
+
+  .q-btn__content {
+    font-size: 0.8125rem;
+    white-space: nowrap;
   }
 }
 
@@ -155,11 +237,12 @@ h3,
   &--primary {
     border-color: var(--sw-primary-border);
     background: var(--sw-primary-tint);
-    color: #0e4f7e;
+    color: #0e5c8a;
   }
 }
 
-// Campos de formulario: etiqueta overline encima, control gris claro.
+// ————— Campos de formulario —————
+// Estilo shadcn: fondo blanco, borde 1px, radio 12px y anillo de foco.
 .sw-field {
   .sw-field__label {
     display: block;
@@ -167,18 +250,39 @@ h3,
   }
 
   .q-field__control {
-    height: 46px;
-    min-height: 46px;
-    border-radius: 10px;
-    background: var(--sw-surface-2);
-    padding: 0 14px;
+    height: 44px;
+    min-height: 44px;
+    border-radius: 12px;
+    background: var(--sw-bg);
+    border: 1px solid var(--sw-border);
+    padding: 0 16px;
+    box-shadow: var(--sw-shadow-sm);
+    transition: border-color 120ms var(--sw-ease), box-shadow 120ms var(--sw-ease);
 
-    &::before {
-      border-color: var(--sw-border);
-    }
+    // Sin las líneas de Material: el borde propio manda.
+    &::before,
     &::after {
-      border-width: 1px;
+      display: none;
     }
+  }
+
+  .q-field--focused .q-field__control {
+    border-color: var(--sw-primary);
+    box-shadow: var(--sw-ring);
+  }
+
+  .q-field--error .q-field__control {
+    border-color: var(--sw-danger);
+  }
+
+  // Quasar asume controles de 56px: se recentra todo al alto de 44px.
+  .q-field__marginal {
+    height: 44px;
+    color: var(--sw-text-3);
+  }
+
+  .q-field__prepend {
+    padding-right: 10px;
   }
 
   .q-field__native,
@@ -187,14 +291,20 @@ h3,
     font-size: 0.9375rem;
     color: var(--sw-text);
     padding: 0;
+    align-items: center;
+  }
+
+  .q-field__native {
+    min-height: 0;
+  }
+
+  // El input de búsqueda de los q-select necesita alto propio.
+  .q-field__input {
+    min-height: 24px;
   }
 
   .q-field__native::placeholder {
     color: var(--sw-text-3);
-  }
-
-  .q-field--focused .q-field__control::before {
-    border-color: var(--sw-primary);
   }
 
   .q-field__bottom {
@@ -208,10 +318,114 @@ h3,
   }
 }
 
-// Hoja inferior (bottom sheet) para los formularios.
+// ————— Diálogo full-screen para registrar/crear —————
+// Barra con el título a la izquierda y cerrar a la derecha; contenido en un
+// carril centrado de 640px; botón principal fijo abajo.
+.sw-modal {
+  display: flex;
+  flex-direction: column;
+  background: var(--sw-bg);
+}
+
+.sw-modal__bar {
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--sw-border);
+  padding-top: env(safe-area-inset-top);
+}
+
+.sw-modal__bar-inner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+}
+
+// Volver: círculo gris suave con chevron, a la izquierda del título.
+.sw-modal__back {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sw-surface-2);
+  color: var(--sw-text-2);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 120ms var(--sw-ease), color 120ms var(--sw-ease);
+
+  &:hover {
+    background: var(--sw-border);
+    color: var(--sw-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--sw-primary);
+    outline-offset: 2px;
+  }
+}
+
+.sw-modal__title {
+  margin: 0;
+  font-family: var(--sw-font-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.sw-modal__subtitle {
+  margin-top: 1px;
+  font-size: 0.8125rem;
+  color: var(--sw-text-2);
+}
+
+.sw-modal__close {
+  color: var(--sw-text-2);
+}
+
+.sw-modal__form {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sw-modal__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.sw-modal__inner {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 22px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sw-modal__footer {
+  flex-shrink: 0;
+  border-top: 1px solid var(--sw-border);
+  background: var(--sw-bg);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.sw-modal__footer-inner {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 12px 16px;
+  display: flex;
+  gap: 10px;
+}
+
+// ————— Hoja inferior (bottom sheet) para formularios rápidos —————
 .sw-sheet {
   width: 100%;
-  max-width: 640px;
+  max-width: 560px;
   border-radius: var(--sw-radius-lg) var(--sw-radius-lg) 0 0 !important;
   box-shadow: var(--sw-shadow-sheet);
   padding: 8px 20px 20px;
@@ -238,13 +452,10 @@ h3,
   background: var(--sw-border);
 }
 
-// Diálogos: telón azul profundo con desenfoque; la hoja entra con muelle
-// suave y sale rápido. La transición va explícita (con !important) para no
-// depender de las variables inline de Quasar ni del orden de carga del CSS.
-// Ojo: la duración de entrada debe ser <= la prop `transition-duration` de
-// cada q-dialog (380 ms), porque Quasar desmonta al vencer ese timer.
+// ————— Diálogos —————
+// Telón azul profundo con desenfoque; la hoja entra con muelle suave.
 .q-dialog__backdrop {
-  background: rgba(10, 37, 56, 0.45);
+  background: rgba(9, 30, 44, 0.45);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   transition: opacity 0.3s ease !important;
@@ -260,13 +471,11 @@ h3,
   transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.4, 0, 0.7, 1) !important;
 }
 
-// Más recorrido que los 15px por defecto para que se note la entrada.
 .q-dialog .q-transition--jump-up-enter-from,
 .q-dialog .q-transition--jump-down-leave-to {
   transform: translate3d(0, 28px, 0);
 }
 
-// Confirmaciones ($q.dialog de texto): escala + fundido.
 .q-dialog .q-transition--scale-enter-active,
 .q-dialog .q-transition--scale-leave-active,
 .q-dialog .q-transition--fade-enter-active,
@@ -274,12 +483,11 @@ h3,
   transition: transform 0.24s var(--sw-ease), opacity 0.24s ease !important;
 }
 
-// Diálogos de confirmación ($q.dialog): mismos radios, tipografía y
-// botones que el resto de la app.
+// Diálogos de confirmación ($q.dialog): mismos radios y botones píldora.
 .q-dialog-plugin {
   border-radius: var(--sw-radius-lg) !important;
   padding: 6px 4px;
-  box-shadow: 0 18px 48px rgba(17, 24, 39, 0.18);
+  box-shadow: 0 18px 48px rgba(16, 24, 40, 0.18);
 
   .q-dialog__title {
     font-family: var(--sw-font-heading);
@@ -298,9 +506,9 @@ h3,
     padding: 8px 16px 12px;
 
     .q-btn {
-      border-radius: 10px;
+      border-radius: 999px;
       min-height: 40px;
-      padding: 0 16px;
+      padding: 0 18px;
       font-weight: 600;
     }
   }

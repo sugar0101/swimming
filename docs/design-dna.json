@@ -1,35 +1,36 @@
 {
   "meta": {
-    "name": "Swimming is Cool — Vitality-derived DNA",
-    "description": "Perfil extraído de la captura de la app iOS 'Vitality' (asistente de bienestar) y adaptado a una app de gestión de suscripciones de alumnos de natación, usada en tablet y móvil.",
+    "name": "Swimming is Cool — SaaS dashboard DNA v2",
+    "description": "Perfil v2: evolución del perfil Vitality hacia un patrón de dashboard SaaS (sidebar izquierdo, tablas limpias, stat cards con icono, badges de estado), extraído de dos referencias pegadas en el chat. La paleta NO se toma de las referencias: el azul de la marca (logo) manda.",
     "source_references": [
-      "Captura Vitality (chat + meal plan + dietary tags + date picker), pegada en chat 2026-09-01",
-      "Captura swimming-si-cool.html (contenido funcional: KPIs, alta de alumno, pagos de piscina)"
+      "Referencia 1: dashboard de campañas 'Joxy Inc.' (sidebar blanco con perfil, tabla de campañas con badges Active/Pending/Need Approval, página Payments con lista de transacciones + carril derecho de tarjetas), pegada en chat 2026-09-03",
+      "Referencia 2: dashboard analytics con fondo púrpura (sidebar con Favorites/Main Menu, breadcrumbs, hero 'Your total revenue', stat cards con delta % y sparkline, tarjetas de campaña por estado), pegada en chat 2026-09-03",
+      "Perfil v1 (Vitality) conservado para tipografía, radios, motion y voz de marca"
     ],
-    "created_at": "2026-09-01",
-    "measurement_note": "La referencia llegó pegada en el chat, sin archivo en disco: paleta obtenida por muestreo visual, no con scripts/measure-colors.mjs."
+    "created_at": "2026-09-03",
+    "measurement_note": "Las referencias llegaron pegadas en el chat sin archivo en disco: análisis visual, sin scripts/measure-colors.mjs. La paleta es decisión de marca (logo), no medida de las referencias."
   },
   "design_system": {
     "color": {
       "palette_type": "monochrome-plus-accent",
-      "primary": { "hex": "#2F6BFF", "role": "Acento único: burbujas del asistente, CTA principal, chips seleccionados, foco" },
-      "secondary": { "hex": "#EAF0FF", "role": "Tinte del primario: fondo de chips seleccionados y estados suaves" },
-      "accent": { "hex": "#2F6BFF", "role": "Mismo azul: la marca vive en un solo color" },
+      "primary": { "hex": "#137CB8", "role": "Acento único de marca (azul del logo): CTA, nav activa, foco, enlaces" },
+      "secondary": { "hex": "#E8F4FB", "role": "Tinte del primario: fondo de nav activa, chips seleccionados, chips de icono" },
+      "accent": { "hex": "#137CB8", "role": "Mismo azul: la marca vive en un solo color" },
       "neutral": {
-        "scale": ["#FFFFFF", "#F5F6F8", "#E5E7EB", "#D1D5DB", "#9CA3AF", "#6B7280", "#374151", "#111827"],
-        "usage": "#FFFFFF fondo y tarjetas; #F5F6F8 campos e inputs; #E5E7EB bordes y divisores; #9CA3AF placeholders y overlines; #6B7280 texto secundario; #111827 texto principal"
+        "scale": ["#FFFFFF", "#F6F7F9", "#F4F5F7", "#E5E7EB", "#D1D5DB", "#94A3B8", "#64748B", "#0F172A"],
+        "usage": "#F6F7F9 fondo de página (lienzo gris frío); #FFFFFF sidebar, tarjetas y tablas; #E5E7EB bordes/divisores hairline; #94A3B8 placeholders y cabeceras de tabla; #64748B texto secundario; #0F172A texto principal"
       },
-      "semantic": { "success": "#16A34A", "warning": "#D97706", "error": "#DC2626", "info": "#2F6BFF" },
-      "semantic_tints": { "success": "#DCFCE7", "warning": "#FEF3C7", "error": "#FEE2E2", "info": "#EAF0FF" },
-      "surface": { "background": "#FFFFFF", "card": "#FFFFFF", "elevated": "#FFFFFF" },
-      "contrast_strategy": "Superficies blancas separadas por bordes de 1px, no por sombras. El color aparece solo en el acento y en las píldoras de estado."
+      "semantic": { "success": "#16A34A", "warning": "#D97706", "error": "#DC2626", "info": "#137CB8" },
+      "semantic_tints": { "success": "#DCFCE7", "warning": "#FEF3C7", "error": "#FEE2E2", "info": "#E8F4FB" },
+      "surface": { "background": "#F6F7F9", "card": "#FFFFFF", "elevated": "#FFFFFF" },
+      "contrast_strategy": "Paneles blancos que flotan sobre un lienzo gris claro; separación por borde 1px + sombra apenas perceptible. El color aparece solo en el acento, los chips de icono y las píldoras de estado."
     },
     "typography": {
       "type_scale": {
-        "display": { "size": "1.75rem", "weight": 700, "line_height": 1.15, "tracking": "-0.02em" },
-        "heading_1": { "size": "1.375rem", "weight": 700, "line_height": 1.2, "tracking": "-0.015em" },
-        "heading_2": { "size": "1.125rem", "weight": 600, "line_height": 1.25, "tracking": "-0.01em" },
-        "heading_3": { "size": "1rem", "weight": 600, "line_height": 1.3, "tracking": "0" },
+        "display": { "size": "1.75rem", "weight": 800, "line_height": 1.15, "tracking": "-0.02em" },
+        "heading_1": { "size": "1.5rem", "weight": 800, "line_height": 1.15, "tracking": "-0.02em" },
+        "heading_2": { "size": "1.0625rem", "weight": 700, "line_height": 1.25, "tracking": "-0.01em" },
+        "heading_3": { "size": "0.9375rem", "weight": 600, "line_height": 1.3, "tracking": "0" },
         "body": { "size": "0.9375rem", "weight": 400, "line_height": 1.45, "tracking": "0" },
         "body_small": { "size": "0.8125rem", "weight": 400, "line_height": 1.4, "tracking": "0" },
         "caption": { "size": "0.75rem", "weight": 500, "line_height": 1.3, "tracking": "0" },
@@ -40,94 +41,94 @@
         "body": "'Inter', 'SF Pro Text', system-ui, sans-serif",
         "mono": "'JetBrains Mono', ui-monospace, monospace"
       },
-      "font_style_notes": "Referencia en SF Pro. En web: Plus Jakarta Sans (geométrica, redondeada, cercana a SF Display) para títulos y cifras; Inter para cuerpo y formularios. Overlines en mayúsculas con espaciado y un punto de color delante."
+      "font_style_notes": "Plus Jakarta Sans para títulos y cifras (tabular-nums en montos); Inter para cuerpo. Cabeceras de tabla y etiquetas en overline mayúsculas."
     },
     "spacing": {
       "base_unit": "4px",
       "scale": ["4px", "8px", "12px", "16px", "20px", "24px", "32px"],
-      "content_density": "media-alta: tarjetas con 14–16px de padding, filas de lista de 44–52px",
-      "section_rhythm": "20–24px entre secciones; 8–12px entre elementos de una misma tarjeta"
+      "content_density": "media: filas de tabla de 52-60px, tarjetas con 14-18px de padding",
+      "section_rhythm": "24px entre secciones; 10px entre título de sección y su tarjeta"
     },
     "layout": {
-      "grid_system": "columna única en móvil; rejilla de 2–3 columnas para tarjetas en tablet",
-      "max_content_width": "760px",
-      "columns": "1 (móvil) / 2–3 (tablet)",
+      "grid_system": "App shell de dos paneles: sidebar fijo de 248px (≥1024px) + área de contenido con carril central de 880px. En tablet vertical y móvil el sidebar se vuelve drawer y aparece una barra superior con hamburguesa.",
+      "max_content_width": "880px (1100px en páginas de dos columnas)",
+      "columns": "1 (móvil) / 2-3 para stat cards / contenido + carril derecho de 320px en páginas con resumen (Pagos)",
       "gutter": "12px",
-      "breakpoints": { "mobile": "0–599px", "tablet": "600–1023px", "desktop": "1024px+" },
-      "alignment_tendency": "alineado a la izquierda; acciones principales a ancho completo"
+      "breakpoints": { "mobile": "0-599px", "tablet": "600-1023px", "desktop": "1024px+ (sidebar persistente)" },
+      "alignment_tendency": "alineado a la izquierda; acción primaria a la derecha del título de página"
     },
     "shape": {
-      "border_radius": { "small": "8px", "medium": "12px", "large": "16px", "pill": "999px" },
-      "border_usage": "1px #E5E7EB en tarjetas, chips y botones secundarios",
-      "divider_style": "línea de 1px #E5E7EB entre filas de lista"
+      "border_radius": { "small": "10px", "medium": "14px", "large": "18px", "pill": "999px" },
+      "border_usage": "1px #E5E7EB en tarjetas y tablas; divisores hairline entre filas",
+      "divider_style": "línea de 1px #E5E7EB entre filas; en el sidebar, divisores entre grupos de navegación"
     },
     "elevation": {
       "shadow_style": "casi plano",
-      "levels": { "low": "none", "medium": "0 1px 2px rgba(17,24,39,0.06)", "high": "0 8px 24px rgba(17,24,39,0.10)" },
-      "depth_cues": "bordes y tintes de fondo; sombra solo en hojas inferiores (bottom sheets)"
+      "levels": { "low": "0 1px 2px rgba(16,24,40,0.05)", "medium": "0 4px 16px rgba(16,24,40,0.08)", "high": "0 18px 48px rgba(16,24,40,0.18)" },
+      "depth_cues": "bordes + lienzo gris; sombra media solo en hover de tarjetas clicables y en popups"
     },
-    "iconography": { "style": "línea fina", "stroke_weight": "1.5px", "size_scale": ["16px", "20px", "24px"], "preferred_set": "Material Symbols Outlined (peso 300–400)" },
+    "iconography": { "style": "línea fina", "stroke_weight": "1.5px", "size_scale": ["16px", "18px", "20px"], "preferred_set": "Material Symbols Outlined" },
     "motion": {
       "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
       "duration_scale": { "micro": "120ms", "normal": "200ms", "macro": "320ms" },
-      "entrance_pattern": "hojas inferiores que suben; listas sin animación de entrada",
+      "entrance_pattern": "diálogos suben con muelle suave; drawer desliza; listas sin animación de entrada",
       "exit_pattern": "desvanecido corto",
-      "philosophy": "discreta: solo feedback de toque y apertura de hojas"
+      "philosophy": "discreta: solo feedback de toque, hover y apertura"
     },
     "components": {
-      "button_style": "Primario: relleno azul, texto blanco, radio 10–12px, ancho completo. Secundario: blanco con borde #E5E7EB. Terciario: píldora pequeña con borde (acciones en filas).",
-      "input_style": "Fondo #F5F6F8 o blanco con borde #E5E7EB, radio 10px, alto 44–48px, etiqueta overline encima",
-      "card_style": "Blanco, borde 1px, radio 12px, sin sombra",
-      "navigation_pattern": "Barra superior blanca con título y acción; botón atrás a la izquierda",
-      "modal_style": "Bottom sheet con esquinas superiores redondeadas 16px y botón principal a ancho completo",
-      "list_style": "Filas con icono/emoji a la izquierda, texto y píldora de acción a la derecha; divisores finos; agrupadas por overline (DAY 1, DAY 2)",
-      "component_notes": "Las etiquetas de estado son píldoras con tinte (verde 'NO START DATE'). Los chips se agrupan bajo overlines con punto de color."
+      "button_style": "Todos píldora (radio 999px). Primario azul relleno; secundario blanco con borde; chip-botón pequeño con tinte para acciones de sección.",
+      "input_style": "Blanco con borde 1px #E5E7EB, radio 12px, alto 44px, anillo de foco azul (borde primario + halo 3px al 16%), etiqueta overline encima",
+      "card_style": "Blanco, borde 1px, radio 18px, sombra low",
+      "navigation_pattern": "Sidebar blanco: marca arriba, items con icono 18px y etiqueta, item activo = píldora con tinte azul y texto azul oscuro; grupos separados por divisor; abajo una mini-tarjeta 'Caja del mes' (equivalente al promo card de la referencia) y Cerrar sesión. Detalle de entidad = página propia con botón atrás + tabs subrayadas.",
+      "modal_style": "Formularios largos en modal centrado radio 22px (pasos segmentados); formularios rápidos en bottom sheet",
+      "list_style": "Tablas-tarjeta: cabecera de columnas en overline gris con la primera columna flexible; filas con avatar/chip de icono + título + subtítulo, píldora de estado tintada, monto tabular a la derecha, chevron o acción; divisores hairline. En móvil las filas colapsan a tarjetas apiladas.",
+      "component_notes": "Estados como píldoras tintadas (verde 'Al día', ámbar 'Vence pronto', rojo 'Debe'). Transacciones con chip de flecha direccional: entrada verde (↓), salida ámbar/roja (↑). Páginas con resumen usan carril derecho de 320px con tarjeta de total grande (patrón 'Subscription Preview' de la referencia)."
     }
   },
   "design_style": {
     "aesthetic": {
-      "mood": "calmado, limpio, de confianza",
-      "visual_metaphor": "app nativa de salud en iOS",
-      "era_influence": "iOS 17 / 2024 consumer health apps",
-      "genre": "utility / wellness mobile app",
+      "mood": "profesional, calmado, de confianza",
+      "visual_metaphor": "panel de administración SaaS moderno (shadcn)",
+      "era_influence": "SaaS dashboards 2024-2025",
+      "genre": "admin dashboard / utility",
       "personality_traits": ["ordenada", "amable", "directa"],
       "adjectives": ["ligera", "nítida", "azul", "aireada"]
     },
     "visual_language": {
       "complexity": "baja",
       "ornamentation": "ninguna",
-      "whitespace_usage": "moderada",
-      "visual_weight_distribution": "uniforme, con peso en el CTA inferior",
-      "focal_strategy": "un solo color de acento dirige la mirada",
+      "whitespace_usage": "generosa en cabeceras, densa en tablas",
+      "visual_weight_distribution": "peso en cifras y CTA; el resto en grises",
+      "focal_strategy": "un solo color de acento + tamaño tipográfico dirigen la mirada",
       "contrast_level": "medio-alto en texto, bajo en superficies",
       "texture_usage": "ninguna"
     },
     "composition": {
-      "hierarchy_method": "tamaño y peso tipográfico + overlines de agrupación",
-      "balance_type": "simétrico",
-      "flow_direction": "vertical, de arriba abajo",
-      "grouping_strategy": "tarjetas y overlines con punto de color",
+      "hierarchy_method": "tamaño/peso tipográfico + overlines; cabeceras de tabla en micro-mayúsculas",
+      "balance_type": "asimétrico controlado: sidebar fijo + contenido",
+      "flow_direction": "vertical por sección; horizontal en filas de tabla",
+      "grouping_strategy": "tarjetas contenedoras con divisores hairline entre filas",
       "negative_space_role": "separar grupos sin líneas pesadas"
     },
     "imagery": {
       "photo_treatment": "sin fotografía",
-      "illustration_style": "emoji pequeños como iconos de fila",
-      "graphic_elements": "puntos de color, píldoras, chips",
+      "illustration_style": "avatares de iniciales con tinte de estado",
+      "graphic_elements": "chips de icono tintados, píldoras, puntos de color, carril de progreso de 3px",
       "pattern_usage": "ninguno",
-      "image_shape": "n/a"
+      "image_shape": "círculo (avatares), cuadrado redondeado 12px (chips de icono)"
     },
     "interaction_feel": {
-      "feedback_style": "cambio de tinte y píldora seleccionada en azul",
-      "hover_behavior": "n/a en táctil; en escritorio, borde más oscuro",
+      "feedback_style": "hover eleva la tarjeta (sombra media) o tinta la fila",
+      "hover_behavior": "filas de tabla se tintan #F4F5F7; tarjetas clicables suben la sombra",
       "transition_personality": "rápida y sobria",
-      "loading_style": "skeleton o anillo pequeño",
+      "loading_style": "skeletons",
       "microinteraction_density": "baja"
     },
     "brand_voice_in_ui": {
       "tone": "cercano y claro",
       "formality": "tú, frases cortas",
-      "cta_style": "verbo + objeto: 'Agregar alumno', 'Registrar pago'",
-      "empty_state_approach": "una frase que dice qué hacer a continuación",
+      "cta_style": "verbo + objeto: 'Nuevo alumno', 'Registrar pago'",
+      "empty_state_approach": "una frase que dice qué hacer a continuación + CTA",
       "error_tone": "directo, sin disculpas"
     }
   },
@@ -143,6 +144,6 @@
     "glassmorphism": { "enabled": false },
     "canvas_drawings": { "enabled": false },
     "svg_animations": { "enabled": false },
-    "composite_notes": "La única pieza 'viva' añadida para swimming es el carril de cada alumno: una barra de 3px que se llena con el tiempo transcurrido del mes pagado y cambia de azul a ámbar y rojo al acercarse el vencimiento."
+    "composite_notes": "La pieza 'viva' sigue siendo el carril de cada alumno: barra de 3px que se llena con el mes transcurrido y cambia de azul a ámbar y rojo al acercarse el vencimiento. Los sparklines/deltas de la referencia 2 NO se adoptan: no hay histórico real y no se inventan datos."
   }
 }

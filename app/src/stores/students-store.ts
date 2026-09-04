@@ -66,19 +66,31 @@ export const useStudentsStore = defineStore('students', () => {
     });
 
     // El pago se registra con la fecha de HOY (cuando entra el dinero),
-    // aunque la cobertura corra desde la fecha de inicio.
+    // aunque la cobertura corra desde la fecha de inicio. Mensualidad y
+    // piscina se registran como pagos independientes.
     if (input.paid) {
-      const paymentRef = doc(collection(db, 'payments'));
-      batch.set(paymentRef, {
-        studentId: studentRef.id,
-        studentName: input.name.trim(),
-        amount: input.monthlyFee,
-        date: todayIso(),
-        month: toIsoMonth(new Date()),
-        coversUntil: paidThrough,
-        poolFee: input.poolFee,
-        createdAt: serverTimestamp(),
-      });
+      if (input.monthlyFee > 0) {
+        batch.set(doc(collection(db, 'payments')), {
+          studentId: studentRef.id,
+          studentName: input.name.trim(),
+          amount: input.monthlyFee,
+          date: todayIso(),
+          month: toIsoMonth(new Date()),
+          coversUntil: paidThrough,
+          poolFee: 0,
+          createdAt: serverTimestamp(),
+        });
+      }
+
+      if (input.poolFee > 0) {
+        batch.set(doc(collection(db, 'poolPayments')), {
+          concept: `Piscina · ${input.name.trim()}`,
+          amount: input.poolFee,
+          date: todayIso(),
+          month: toIsoMonth(new Date()),
+          createdAt: serverTimestamp(),
+        });
+      }
     }
 
     await batch.commit();
@@ -100,26 +112,48 @@ export const useStudentsStore = defineStore('students', () => {
 
   // Registra el pago de una mensualidad: la cobertura avanza al siguiente
   // ciclo anclado a la fecha de inicio (pagar tarde no corre el día de
-  // corte del alumno) y crea el doc de pago.
-  const registerPayment = async (student: StudentDoc) => {
+  // corte del alumno). La mensualidad y la piscina se registran como pagos
+  // INDEPENDIENTES: la mensualidad crea su doc en `payments` y la piscina
+  // (si es > 0) crea su propio doc en `poolPayments`.
+  const registerPayment = async (
+    student: StudentDoc,
+    options?: { amount?: number; poolFee?: number; coversUntil?: string }
+  ) => {
     const today = todayIso();
-    const coversUntil = coverageAfterPayment(student);
+    const month = toIsoMonth(new Date());
+    const amount = options?.amount ?? student.monthlyFee;
+    const poolFee = options?.poolFee ?? student.poolFee;
+    const coversUntil = options?.coversUntil ?? coverageAfterPayment(student);
 
     const batch = writeBatch(db);
     batch.update(doc(db, `students/${student._id}`), {
       paidThrough: coversUntil,
       updatedAt: serverTimestamp(),
     });
-    batch.set(doc(collection(db, 'payments')), {
-      studentId: student._id,
-      studentName: student.name,
-      amount: student.monthlyFee,
-      date: today,
-      month: toIsoMonth(new Date()),
-      coversUntil,
-      poolFee: student.poolFee,
-      createdAt: serverTimestamp(),
-    });
+
+    if (amount > 0) {
+      batch.set(doc(collection(db, 'payments')), {
+        studentId: student._id,
+        studentName: student.name,
+        amount,
+        date: today,
+        month,
+        coversUntil,
+        poolFee: 0,
+        createdAt: serverTimestamp(),
+      });
+    }
+
+    if (poolFee > 0) {
+      batch.set(doc(collection(db, 'poolPayments')), {
+        concept: `Piscina · ${student.name}`,
+        amount: poolFee,
+        date: today,
+        month,
+        createdAt: serverTimestamp(),
+      });
+    }
+
     await batch.commit();
   };
 

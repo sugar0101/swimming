@@ -35,11 +35,8 @@ export const usePaymentsStore = defineStore('payments', () => {
     PoolPaymentSchema
   );
 
-  const collected = computed(() =>
-    payments.value.reduce((sum, p) => sum + p.amount, 0)
-  );
-  // Piscina del mes = pagos manuales (arriendo, mantenimiento…) + lo que
-  // se paga a la piscina por cada mensualidad cobrada (snapshot del pago).
+  // Piscina del mes = pagos de piscina registrados + snapshots legados que
+  // venían dentro de la mensualidad.
   const poolManualCost = computed(() =>
     poolPayments.value.reduce((sum, p) => sum + p.amount, 0)
   );
@@ -47,6 +44,13 @@ export const usePaymentsStore = defineStore('payments', () => {
     payments.value.reduce((sum, p) => sum + p.poolFee, 0)
   );
   const poolCost = computed(() => poolManualCost.value + poolStudentCost.value);
+
+  // Recaudado = TODO lo que entra en el mes: mensualidades + piscina (la
+  // piscina también se le cobra al alumno). Neto = recaudado − piscina.
+  const paymentsSum = computed(() =>
+    payments.value.reduce((sum, p) => sum + p.amount, 0)
+  );
+  const collected = computed(() => paymentsSum.value + poolCost.value);
   const net = computed(() => collected.value - poolCost.value);
 
   const sortedPoolPayments = computed(() =>

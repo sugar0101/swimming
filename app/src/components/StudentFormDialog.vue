@@ -7,164 +7,141 @@
     :transition-duration="320"
     @hide="onDialogHide"
   >
-    <q-card class="student-form">
-      <!-- Barra superior fija: cerrar + título. -->
-      <header class="student-form__bar">
-        <div class="student-form__bar-inner">
-          <q-btn flat round dense icon="sym_o_close" aria-label="Cerrar" v-close-popup />
-          <h2 class="student-form__title sw-heading">
+    <q-card class="sw-modal">
+      <header class="sw-modal__bar">
+        <div class="sw-modal__bar-inner">
+          <button type="button" class="sw-modal__back" aria-label="Volver" v-close-popup>
+            <q-icon name="sym_o_chevron_left" size="22px" />
+          </button>
+          <h2 class="sw-modal__title">
             {{ isEdit ? 'Editar alumno' : 'Nuevo alumno' }}
           </h2>
         </div>
       </header>
 
-      <q-form class="student-form__form" @submit.prevent="submit">
-        <div class="student-form__scroll">
-          <div class="student-form__inner">
-            <section class="student-form__section">
+      <q-form class="sw-modal__form" @submit.prevent="save">
+        <div class="sw-modal__scroll">
+          <div class="sw-modal__inner">
+            <!-- Datos del alumno -->
+            <section class="sw-card student-form__card">
               <span class="sw-overline">Datos del alumno</span>
 
               <div class="student-form__grid">
-                <div class="sw-field student-form__span-2">
-                  <label class="sw-overline sw-overline--plain sw-field__label" for="student-name">
-                    Nombre completo
-                  </label>
-                  <q-input
-                    for="student-name"
-                    v-model="form.name"
-                    borderless
-                    placeholder="Ej: Yesicca Rojas"
-                    autocomplete="name"
-                    :rules="[(v) => !!v?.trim() || 'Escribe el nombre']"
-                    hide-bottom-space
-                  />
-                </div>
+              <div class="sw-field student-form__span-2">
+                <label class="sw-overline sw-overline--plain sw-field__label" for="student-name">
+                  Nombre completo
+                </label>
+                <q-input
+                  for="student-name"
+                  v-model="form.name"
+                  borderless
+                  placeholder="Ej: Yesicca Rojas"
+                  autocomplete="name"
+                  :rules="[(v) => !!v?.trim() || 'Escribe el nombre']"
+                  hide-bottom-space
+                />
+              </div>
 
-                <div class="sw-field">
-                  <label class="sw-overline sw-overline--plain sw-field__label" for="student-document">
-                    Documento de identidad
-                  </label>
-                  <q-input
-                    for="student-document"
-                    v-model="form.document"
-                    borderless
-                    inputmode="numeric"
-                    placeholder="Ej: 1023456789"
-                    hide-bottom-space
-                  />
-                </div>
+              <div class="sw-field">
+                <label class="sw-overline sw-overline--plain sw-field__label" for="student-document">
+                  Documento
+                </label>
+                <q-input
+                  for="student-document"
+                  v-model="form.document"
+                  borderless
+                  inputmode="numeric"
+                  placeholder="Ej: 1023456789"
+                  hide-bottom-space
+                />
+              </div>
 
-                <div class="sw-field">
-                  <label class="sw-overline sw-overline--plain sw-field__label" for="student-age">
-                    Edad
-                  </label>
-                  <q-input
-                    for="student-age"
-                    v-model.number="ageInput"
-                    borderless
-                    type="number"
-                    inputmode="numeric"
-                    placeholder="Ej: 9"
-                    :rules="[
-                      (v) =>
-                        v === '' ||
-                        v === null ||
-                        (typeof v === 'number' && v >= 0 && v <= 120) ||
-                        'Edad inválida',
-                    ]"
-                    hide-bottom-space
-                  />
-                </div>
+              <div class="sw-field">
+                <label class="sw-overline sw-overline--plain sw-field__label" for="student-age">
+                  Edad
+                </label>
+                <q-input
+                  for="student-age"
+                  v-model.number="ageInput"
+                  borderless
+                  type="number"
+                  inputmode="numeric"
+                  placeholder="Ej: 9"
+                  :rules="[
+                    (v) =>
+                      v === '' ||
+                      v === null ||
+                      (typeof v === 'number' && v >= 0 && v <= 120) ||
+                      'Edad inválida',
+                  ]"
+                  hide-bottom-space
+                />
+              </div>
 
-                <div class="sw-field student-form__span-2">
-                  <label class="sw-overline sw-overline--plain sw-field__label" for="student-phone">
-                    Teléfono WhatsApp
-                  </label>
-                  <q-input
-                    for="student-phone"
-                    v-model="form.phone"
-                    borderless
-                    type="tel"
-                    inputmode="tel"
-                    placeholder="3025916027"
-                    autocomplete="tel"
-                    hide-bottom-space
-                  />
-                </div>
+              <div class="sw-field student-form__span-2">
+                <label class="sw-overline sw-overline--plain sw-field__label" for="student-phone">
+                  Teléfono WhatsApp
+                </label>
+                <q-input
+                  for="student-phone"
+                  v-model="form.phone"
+                  borderless
+                  type="tel"
+                  inputmode="tel"
+                  placeholder="3025916027"
+                  autocomplete="tel"
+                  hide-bottom-space
+                />
+              </div>
               </div>
             </section>
 
-            <section class="student-form__section">
+            <!-- Mensualidad -->
+            <section class="sw-card student-form__card">
               <span class="sw-overline">Mensualidad</span>
 
               <div class="student-form__grid">
-                <div>
-                  <date-field
-                    v-model="form.startDate"
-                    label="Fecha de inicio"
-                    field-id="student-start"
-                    required-message="Elige la fecha"
-                  />
-                  <div class="student-form__hint">
-                    La mensualidad siempre vence este día del mes.
-                  </div>
-                </div>
-
-                <div class="sw-field">
-                  <label class="sw-overline sw-overline--plain sw-field__label" for="student-fee">
-                    Valor mensualidad
-                  </label>
-                  <q-input
-                    for="student-fee"
-                    v-model.number="form.monthlyFee"
-                    borderless
-                    type="number"
-                    inputmode="numeric"
-                    prefix="$"
-                    placeholder="170000"
-                    :rules="[(v) => (typeof v === 'number' && v >= 0) || 'Escribe el valor']"
-                    hide-bottom-space
-                  />
-                </div>
-
-                <div class="sw-field student-form__span-2">
-                  <label class="sw-overline sw-overline--plain sw-field__label" for="student-pool">
-                    Valor piscina
-                  </label>
-                  <q-input
-                    for="student-pool"
-                    v-model.number="form.poolFee"
-                    borderless
-                    type="number"
-                    inputmode="numeric"
-                    prefix="$"
-                    placeholder="0"
-                    :rules="[(v) => (typeof v === 'number' && v >= 0) || 'Escribe el valor']"
-                    hide-bottom-space
-                  />
-                  <div class="student-form__hint">
-                    Lo que se paga a la piscina por este alumno cada mes. Se descuenta
-                    del neto en la caja.
-                  </div>
-                </div>
-
-                <!-- Al editar, el vencimiento se puede corregir a mano. -->
-                <div v-if="isEdit" class="student-form__span-2">
-                  <date-field
-                    v-model="paidThrough"
-                    label="Pagado hasta"
-                    field-id="student-paid-through"
-                    required-message="Elige la fecha"
-                  />
-                  <div class="student-form__hint">{{ paidThroughHint }}</div>
+              <div class="student-form__span-2">
+                <date-field
+                  v-model="form.startDate"
+                  label="Fecha de inicio"
+                  field-id="student-start"
+                  required-message="Elige la fecha"
+                />
+                <div class="student-form__hint">
+                  La mensualidad siempre vence este día del mes.
                 </div>
               </div>
 
-              <div v-if="!isEdit" class="student-form__status">
+              <money-field
+                v-model="form.monthlyFee"
+                label="Mensualidad"
+                field-id="student-fee"
+                placeholder="170.000"
+              />
+
+              <money-field v-model="form.poolFee" label="Piscina" field-id="student-pool" />
+
+              <!-- Al editar, el vencimiento se puede corregir a mano. -->
+              <div v-if="isEdit" class="student-form__span-2">
+                <date-field
+                  v-model="paidThrough"
+                  label="Pagado hasta"
+                  field-id="student-paid-through"
+                  required-message="Elige la fecha"
+                />
+                <div class="student-form__hint">{{ paidThroughHint }}</div>
+              </div>
+
+              <div v-if="!isEdit" class="student-form__span-2">
                 <span class="sw-overline sw-overline--plain sw-field__label">
                   Estado de la mensualidad
                 </span>
-                <div class="student-form__chips" role="radiogroup" aria-label="Estado de la mensualidad">
+                <div
+                  class="student-form__chips"
+                  role="radiogroup"
+                  aria-label="Estado de la mensualidad"
+                >
                   <button
                     type="button"
                     class="student-form__chip"
@@ -196,20 +173,20 @@
                   }}
                 </div>
               </div>
+              </div>
             </section>
           </div>
         </div>
 
-        <!-- Botón fijo abajo, siempre a la vista. -->
-        <footer class="student-form__footer">
-          <div class="student-form__inner">
+        <footer class="sw-modal__footer">
+          <div class="sw-modal__footer-inner">
             <q-btn
               unelevated
               no-caps
               type="submit"
               color="primary"
               class="sw-btn full-width"
-              :label="isEdit ? 'Guardar cambios' : 'Agregar alumno'"
+              :label="isEdit ? 'Guardar cambios' : 'Crear alumno'"
               :loading="saving"
             />
           </div>
@@ -223,8 +200,10 @@
 import { computed, reactive, ref } from 'vue';
 import { useDialogPluginComponent, useQuasar } from 'quasar';
 import DateField from 'src/components/DateField.vue';
+import MoneyField from 'src/components/MoneyField.vue';
 import { StudentDoc, StudentInput } from 'src/models/Student';
 import { useStudentsStore } from 'src/stores/students-store';
+import { useSettingsStore } from 'src/stores/settings-store';
 import { addMonthsIso, formatShortDate, todayIso } from 'src/utils/dates';
 import { dueLabel, getStatus, STATUS_LABEL } from 'src/utils/subscription';
 
@@ -238,6 +217,7 @@ const { dialogRef, onDialogHide, onDialogOK } = useDialogPluginComponent();
 
 const $q = useQuasar();
 const studentsStore = useStudentsStore();
+const settingsStore = useSettingsStore();
 
 const isEdit = computed(() => !!props.student);
 
@@ -246,8 +226,9 @@ const form = reactive<Omit<StudentInput, 'age'>>({
   phone: props.student?.phone ?? '',
   document: props.student?.document ?? '',
   startDate: props.student?.startDate ?? todayIso(),
-  monthlyFee: props.student?.monthlyFee ?? 170000,
-  poolFee: props.student?.poolFee ?? 0,
+  // Los valores por defecto vienen de Configuración.
+  monthlyFee: props.student?.monthlyFee ?? settingsStore.monthlyFee,
+  poolFee: props.student?.poolFee ?? settingsStore.poolFee,
   paid: true,
 });
 // La edad es opcional: '' en el input equivale a null en el modelo.
@@ -269,7 +250,7 @@ const paidThroughHint = computed(() => {
   return `Con esta fecha queda: ${STATUS_LABEL[status]} · ${dueLabel(paidThrough.value).toLowerCase()}.`;
 });
 
-const submit = async () => {
+const save = async () => {
   saving.value = true;
   try {
     if (props.student) {
@@ -302,60 +283,12 @@ const submit = async () => {
 </script>
 
 <style scoped lang="scss">
-.student-form {
+// Cada sección vive en su cajita con borde.
+.student-form__card {
+  padding: 18px;
   display: flex;
   flex-direction: column;
-  background: var(--sw-bg);
-}
-
-.student-form__bar {
-  flex-shrink: 0;
-  border-bottom: 1px solid var(--sw-border);
-  padding-top: env(safe-area-inset-top);
-}
-
-.student-form__bar-inner {
-  max-width: 640px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
-}
-
-.student-form__title {
-  margin: 0;
-  font-size: 1.125rem;
-  font-weight: 700;
-}
-
-.student-form__form {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.student-form__scroll {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-}
-
-.student-form__inner {
-  max-width: 640px;
-  margin: 0 auto;
-  padding: 20px 16px;
-}
-
-.student-form__section {
-  & + & {
-    margin-top: 28px;
-  }
-
-  > .sw-overline {
-    margin-bottom: 12px;
-  }
+  gap: 14px;
 }
 
 .student-form__grid {
@@ -364,7 +297,7 @@ const submit = async () => {
   gap: 14px;
 }
 
-@media (min-width: 600px) {
+@media (min-width: 480px) {
   .student-form__grid {
     grid-template-columns: 1fr 1fr;
   }
@@ -374,27 +307,25 @@ const submit = async () => {
   }
 }
 
-.student-form__status {
-  margin-top: 16px;
-}
-
 .student-form__chips {
   display: flex;
   gap: 8px;
 }
 
 .student-form__chip {
+  flex: 1;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  height: 36px;
+  height: 44px;
   padding: 0 14px;
   border-radius: 999px;
   border: 1px solid var(--sw-border);
   background: var(--sw-bg);
   color: var(--sw-text);
   font: inherit;
-  font-size: 0.8125rem;
+  font-size: 0.8438rem;
   font-weight: 600;
   cursor: pointer;
   transition: background 120ms var(--sw-ease), border-color 120ms var(--sw-ease);
@@ -407,7 +338,7 @@ const submit = async () => {
   &--active {
     background: var(--sw-primary-tint);
     border-color: var(--sw-primary-border);
-    color: #0e4f7e;
+    color: #0e5c8a;
   }
 }
 
@@ -415,16 +346,5 @@ const submit = async () => {
   margin-top: 8px;
   font-size: 0.8125rem;
   color: var(--sw-text-2);
-}
-
-.student-form__footer {
-  flex-shrink: 0;
-  border-top: 1px solid var(--sw-border);
-  background: var(--sw-bg);
-  padding-bottom: env(safe-area-inset-bottom);
-
-  .student-form__inner {
-    padding: 12px 16px;
-  }
 }
 </style>

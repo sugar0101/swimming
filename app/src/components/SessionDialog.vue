@@ -1,80 +1,101 @@
 <template>
   <q-dialog
     ref="dialogRef"
-    position="bottom"
+    maximized
     transition-show="jump-up"
     transition-hide="jump-down"
     :transition-duration="320"
     @hide="onDialogHide"
   >
-    <q-card class="sw-sheet">
-      <div class="sw-sheet__grip" />
-
-      <div class="session-form__header">
-        <div>
-          <h2 class="session-form__title sw-heading">
-            {{ isEdit ? 'Editar sesión' : 'Registrar sesión' }}
+    <q-card class="sw-modal">
+      <!-- Barra superior fija: título a la izquierda, cerrar a la derecha. -->
+      <header class="sw-modal__bar">
+        <div class="sw-modal__bar-inner">
+          <button type="button" class="sw-modal__back" aria-label="Volver" v-close-popup>
+            <q-icon name="sym_o_chevron_left" size="22px" />
+          </button>
+          <h2 class="sw-modal__title">
+            {{ isEdit ? 'Editar asistencia' : 'Registrar asistencia' }}
           </h2>
-          <div class="session-form__student">{{ studentName }}</div>
         </div>
-        <q-btn flat round dense icon="sym_o_close" aria-label="Cerrar" v-close-popup />
-      </div>
+      </header>
 
-      <q-form class="session-form" @submit.prevent="submit">
-        <date-field
-          v-model="form.date"
-          label="Fecha"
-          field-id="session-date"
-          required-message="Elige la fecha"
-        />
+      <q-form class="sw-modal__form" @submit.prevent="submit">
+        <div class="sw-modal__scroll">
+          <div class="sw-modal__inner">
+            <!-- Alumno fijo (detalle del alumno o edición): tarjeta sin X. -->
+            <student-picker-field
+              v-if="fixedStudent"
+              :model-value="fixedStudent"
+              :removable="false"
+            />
+            <!-- Alumno a elegir (página de Asistencias). -->
+            <student-picker-field
+              v-else
+              v-model="selectedStudent"
+              :error="studentError"
+            />
 
-        <div>
-          <span class="sw-overline sw-overline--plain session-form__label">Desempeño</span>
-          <div class="session-form__stars" role="radiogroup" aria-label="Desempeño de 1 a 5">
-            <button
-              v-for="n in 5"
-              :key="n"
-              type="button"
-              class="session-form__star"
-              :class="{ 'session-form__star--on': form.rating !== null && n <= form.rating }"
-              role="radio"
-              :aria-checked="form.rating === n"
-              :aria-label="`${n} de 5`"
-              @click="setRating(n)"
-            >
-              <q-icon name="sym_o_star" size="26px" />
-            </button>
+            <date-field
+              v-model="form.date"
+              label="Fecha"
+              field-id="session-date"
+              required-message="Elige la fecha"
+            />
+
+            <div>
+              <span class="sw-overline sw-overline--plain session-form__label">Desempeño</span>
+              <div class="session-form__stars" role="radiogroup" aria-label="Desempeño de 1 a 5">
+                <button
+                  v-for="n in 5"
+                  :key="n"
+                  type="button"
+                  class="session-form__star"
+                  :class="{ 'session-form__star--on': form.rating !== null && n <= form.rating }"
+                  role="radio"
+                  :aria-checked="form.rating === n"
+                  :aria-label="`${n} de 5`"
+                  @click="setRating(n)"
+                >
+                  <q-icon name="sym_o_star" size="28px" />
+                </button>
+              </div>
+              <div class="session-form__hint">
+                {{ ratingHint }}
+              </div>
+            </div>
+
+            <div class="sw-field">
+              <label class="sw-overline sw-overline--plain sw-field__label" for="session-note">
+                Nota del entrenador
+              </label>
+              <q-input
+                for="session-note"
+                v-model="form.note"
+                borderless
+                type="textarea"
+                autogrow
+                placeholder="Ej: trabajamos patada de libre; mejoró la respiración, falta ritmo."
+                hide-bottom-space
+                class="session-form__note"
+              />
+            </div>
           </div>
-          <div class="session-form__hint">
-            {{ ratingHint }}
+        </div>
+
+        <footer class="sw-modal__footer">
+          <div class="sw-modal__footer-inner">
+            <q-btn
+              unelevated
+              no-caps
+              type="submit"
+              color="primary"
+              class="sw-btn full-width"
+              :label="isEdit ? 'Guardar cambios' : 'Registrar asistencia'"
+              :loading="saving"
+            />
           </div>
-        </div>
-
-        <div class="sw-field">
-          <label class="sw-overline sw-overline--plain sw-field__label" for="session-note">
-            Nota del entrenador
-          </label>
-          <q-input
-            for="session-note"
-            v-model="form.note"
-            borderless
-            type="textarea"
-            autogrow
-            placeholder="Ej: trabajamos patada de libre; mejoró la respiración, falta ritmo."
-            hide-bottom-space
-            class="session-form__note"
-          />
-        </div>
-
-        <q-btn
-          unelevated
-          no-caps
-          type="submit"
-          color="primary"
-          class="sw-btn full-width q-mt-sm"
-          :label="isEdit ? 'Guardar cambios' : 'Registrar sesión'"
-          :loading="saving"
-        />
+        </footer>
       </q-form>
     </q-card>
   </q-dialog>
@@ -92,26 +113,46 @@ import {
 } from 'firebase/firestore';
 import { db } from 'src/boot/firebase';
 import DateField from 'src/components/DateField.vue';
+import StudentPickerField from 'src/components/StudentPickerField.vue';
 import { SessionDoc } from 'src/models/Session';
+import { StudentDoc } from 'src/models/Student';
+import { useStudentsStore } from 'src/stores/students-store';
 import { todayIso } from 'src/utils/dates';
 
 // Se abre con $q.dialog({ component: SessionDialog, componentProps }):
-// sin `session` registra una nueva; con `session` la edita.
+// - con `studentId`, la asistencia es de ese alumno (detalle del alumno);
+// - sin `studentId`, el alumno se elige con el diálogo de búsqueda;
+// - con `session` edita; sin `session` registra una nueva;
+// - `defaultDate` preselecciona la fecha (día visible en Asistencias).
 const props = defineProps<{
-  studentId: string;
-  studentName: string;
+  studentId?: string | null;
+  studentName?: string | null;
   session?: SessionDoc | null;
+  defaultDate?: string;
 }>();
 
 defineEmits([...useDialogPluginComponent.emits]);
 const { dialogRef, onDialogHide, onDialogOK } = useDialogPluginComponent();
 
 const $q = useQuasar();
+const studentsStore = useStudentsStore();
 
 const isEdit = computed(() => !!props.session);
 
+// Alumno fijo: viene por prop; se muestra como tarjeta sin X.
+const fixedStudent = computed<StudentDoc | null>(() => {
+  if (!props.studentId) return null;
+  return (
+    studentsStore.students.find((s) => s._id === props.studentId) ??
+    ({ _id: props.studentId, name: props.studentName ?? 'Alumno' } as StudentDoc)
+  );
+});
+
+const selectedStudent = ref<StudentDoc | null>(null);
+const studentError = ref('');
+
 const form = reactive({
-  date: props.session?.date ?? todayIso(),
+  date: props.session?.date ?? props.defaultDate ?? todayIso(),
   rating: (props.session?.rating ?? null) as number | null,
   note: props.session?.note ?? '',
 });
@@ -130,6 +171,13 @@ const ratingHint = computed(() =>
 );
 
 const submit = async () => {
+  const targetStudentId = props.studentId ?? selectedStudent.value?._id;
+  if (!targetStudentId) {
+    studentError.value = 'Elige el alumno';
+    return;
+  }
+  studentError.value = '';
+
   saving.value = true;
   try {
     if (props.session) {
@@ -139,16 +187,16 @@ const submit = async () => {
         note: form.note.trim(),
         updatedAt: serverTimestamp(),
       });
-      $q.notify({ message: 'Sesión actualizada', color: 'positive' });
+      $q.notify({ message: 'Asistencia actualizada', color: 'positive' });
     } else {
       await addDoc(collection(db, 'sessions'), {
-        studentId: props.studentId,
+        studentId: targetStudentId,
         date: form.date,
         rating: form.rating,
         note: form.note.trim(),
         createdAt: serverTimestamp(),
       });
-      $q.notify({ message: 'Sesión registrada', color: 'positive' });
+      $q.notify({ message: 'Asistencia registrada', color: 'positive' });
     }
     onDialogOK();
   } catch (error) {
@@ -164,30 +212,6 @@ const submit = async () => {
 </script>
 
 <style scoped lang="scss">
-.session-form__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 14px;
-}
-
-.session-form__title {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 700;
-}
-
-.session-form__student {
-  font-size: 0.8125rem;
-  color: var(--sw-text-2);
-}
-
-.session-form {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
 .session-form__label {
   display: flex;
   margin-bottom: 6px;
@@ -229,7 +253,7 @@ const submit = async () => {
 
 .session-form__note :deep(.q-field__control) {
   height: auto;
-  min-height: 88px;
+  min-height: 96px;
   padding: 10px 14px;
 }
 </style>
