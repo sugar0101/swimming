@@ -45,6 +45,11 @@ service cloud.firestore {
       allow update: if false;
     }
 
+    // Sesiones de entrenamiento (bitácora del proceso de cada alumno).
+    match /sessions/{sessionId} {
+      allow read, create, update, delete: if signedIn();
+    }
+
     // Pagos del servicio de piscina (gasto del mes).
     match /poolPayments/{paymentId} {
       allow read, create, delete: if signedIn();

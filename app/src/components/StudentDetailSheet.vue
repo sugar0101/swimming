@@ -89,6 +89,69 @@
             />
           </div>
 
+          <!-- Proceso: la bitácora de sesiones del alumno. -->
+          <section class="detail__sessions">
+            <div class="detail__sessions-head">
+              <h3 class="detail__sessions-title sw-heading">Proceso</h3>
+              <q-btn
+                unelevated
+                no-caps
+                dense
+                class="sw-chip-btn sw-chip-btn--primary"
+                icon="sym_o_add"
+                label="Registrar sesión"
+                @click="openSessionDialog()"
+              />
+            </div>
+
+            <div v-if="sessionsSummary" class="detail__sessions-summary">
+              {{ sessionsSummary }}
+            </div>
+
+            <div v-if="sortedSessions.length === 0" class="detail__sessions-empty">
+              Aún no hay sesiones registradas. Registra la primera para llevar el
+              proceso del alumno.
+            </div>
+
+            <button
+              v-for="session in sortedSessions"
+              :key="session._id"
+              type="button"
+              class="detail__session"
+              @click="openSessionDialog(session)"
+            >
+              <div class="detail__session-body">
+                <div class="detail__session-top">
+                  <span class="detail__session-date">
+                    {{ formatShortDate(session.date, true) }}
+                  </span>
+                  <span v-if="session.rating" class="detail__session-stars">
+                    <q-icon
+                      v-for="n in 5"
+                      :key="n"
+                      name="sym_o_star"
+                      size="14px"
+                      :class="{ 'detail__session-star--on': n <= session.rating }"
+                    />
+                  </span>
+                </div>
+                <div v-if="session.note" class="detail__session-note">
+                  {{ session.note }}
+                </div>
+              </div>
+              <q-btn
+                flat
+                round
+                dense
+                size="sm"
+                icon="sym_o_delete"
+                class="detail__session-delete"
+                aria-label="Eliminar sesión"
+                @click.stop="confirmRemoveSession(session)"
+              />
+            </button>
+          </section>
+
           <div class="detail__links">
             <button type="button" class="detail__link" @click="act('edit')">
               Editar datos
@@ -108,12 +171,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch } from 'vue';
-import { useDialogPluginComponent } from 'quasar';
+import { computed, ref, watch } from 'vue';
+import { useDialogPluginComponent, useQuasar } from 'quasar';
+import { collection, deleteDoc, doc, query, where } from 'firebase/firestore';
+import { db } from 'src/boot/firebase';
+import { useCollection } from 'src/composables/firebase';
+import SessionDialog from 'src/components/SessionDialog.vue';
 import { StudentDoc } from 'src/models/Student';
+import { SessionDoc, SessionSchema } from 'src/models/Session';
 import { useStudentsStore } from 'src/stores/students-store';
 import { formatMoney } from 'src/utils/money';
-import { formatShortDate } from 'src/utils/dates';
+import { currentMonthIso, formatShortDate } from 'src/utils/dates';
 import {
   STATUS_LABEL,
   dueLabel,
@@ -150,6 +218,60 @@ watch(student, (value) => {
 const act = (action: StudentDetailAction['action']) => {
   if (!student.value) return;
   onDialogOK({ action, student: student.value } satisfies StudentDetailAction);
+};
+
+const $q = useQuasar();
+
+// Bitácora de sesiones del alumno, en vivo. Solo `where` por studentId
+// (sin orderBy) para no requerir índice compuesto; se ordena en cliente.
+const sessionsQuery = ref(
+  query(collection(db, 'sessions'), where('studentId', '==', props.studentId))
+);
+const { documents: sessions } = useCollection(sessionsQuery, SessionSchema);
+
+const sortedSessions = computed(() =>
+  [...sessions.value].sort((a, b) => (a.date < b.date ? 1 : -1))
+);
+
+const sessionsSummary = computed(() => {
+  const total = sessions.value.length;
+  if (total === 0) return '';
+  const month = currentMonthIso();
+  const thisMonth = sessions.value.filter((s) => s.date.startsWith(month)).length;
+  const rated = sessions.value.filter((s) => s.rating !== null);
+  const parts = [
+    `${total} ${total === 1 ? 'sesión' : 'sesiones'}`,
+    `${thisMonth} este mes`,
+  ];
+  if (rated.length > 0) {
+    const avg =
+      rated.reduce((sum, s) => sum + (s.rating ?? 0), 0) / rated.length;
+    parts.push(`promedio ${avg.toFixed(1)} ★`);
+  }
+  return parts.join(' · ');
+});
+
+const openSessionDialog = (session?: SessionDoc) => {
+  if (!student.value) return;
+  $q.dialog({
+    component: SessionDialog,
+    componentProps: {
+      studentId: props.studentId,
+      studentName: student.value.name,
+      session: session ?? null,
+    },
+  });
+};
+
+const confirmRemoveSession = (session: SessionDoc) => {
+  $q.dialog({
+    title: 'Eliminar sesión',
+    message: `Se elimina la sesión del ${formatShortDate(session.date, true)} de la bitácora.`,
+    ok: { label: 'Eliminar', color: 'negative', unelevated: true, noCaps: true },
+    cancel: { label: 'Cancelar', flat: true, noCaps: true },
+  }).onOk(async () => {
+    await deleteDoc(doc(db, `sessions/${session._id}`));
+  });
 };
 
 const status = computed(() =>
@@ -312,6 +434,96 @@ const whatsapp = computed(() => {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.detail__sessions {
+  margin-top: 28px;
+}
+
+.detail__sessions-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.detail__sessions-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.detail__sessions-summary {
+  margin-top: 4px;
+  font-size: 0.8125rem;
+  color: var(--sw-text-2);
+}
+
+.detail__sessions-empty {
+  padding: 14px 0;
+  font-size: 0.875rem;
+  color: var(--sw-text-2);
+}
+
+.detail__session {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 0;
+  border: 0;
+  border-bottom: 1px solid var(--sw-border);
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--sw-primary);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+}
+
+.detail__session-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.detail__session-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detail__session-date {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.detail__session-stars {
+  display: inline-flex;
+  color: var(--sw-border-strong);
+
+  .detail__session-star--on {
+    color: var(--sw-warning);
+  }
+}
+
+.detail__session-note {
+  margin-top: 2px;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--sw-text-2);
+  white-space: pre-line;
+}
+
+.detail__session-delete {
+  color: var(--sw-text-3);
 }
 
 .detail__links {
