@@ -2,9 +2,9 @@
   <q-dialog
     ref="dialogRef"
     maximized
-    transition-show="slide-up"
-    transition-hide="slide-down"
-    :transition-duration="380"
+    transition-show="jump-up"
+    transition-hide="jump-down"
+    :transition-duration="320"
     @hide="onDialogHide"
   >
     <q-card class="student-form">

@@ -239,20 +239,39 @@ h3,
 }
 
 // Diálogos: telón azul profundo con desenfoque; la hoja entra con muelle
-// suave y sale rápido. La duración la fija cada q-dialog con la prop
-// `transition-duration` (Quasar la inyecta inline); aquí solo el easing.
+// suave y sale rápido. La transición va explícita (con !important) para no
+// depender de las variables inline de Quasar ni del orden de carga del CSS.
+// Ojo: la duración de entrada debe ser <= la prop `transition-duration` de
+// cada q-dialog (380 ms), porque Quasar desmonta al vencer ese timer.
 .q-dialog__backdrop {
   background: rgba(10, 37, 56, 0.45);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
+  transition: opacity 0.3s ease !important;
 }
 
-.q-dialog .q-transition--slide-up-enter-active {
-  --q-transition-easing: var(--sw-ease-spring);
+.q-dialog .q-transition--jump-up-enter-active,
+.q-dialog .q-transition--jump-down-enter-active {
+  transition: opacity 0.32s ease, transform 0.32s var(--sw-ease-spring) !important;
 }
 
-.q-dialog .q-transition--slide-down-leave-active {
-  --q-transition-easing: cubic-bezier(0.4, 0, 0.7, 1);
+.q-dialog .q-transition--jump-up-leave-active,
+.q-dialog .q-transition--jump-down-leave-active {
+  transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.4, 0, 0.7, 1) !important;
+}
+
+// Más recorrido que los 15px por defecto para que se note la entrada.
+.q-dialog .q-transition--jump-up-enter-from,
+.q-dialog .q-transition--jump-down-leave-to {
+  transform: translate3d(0, 28px, 0);
+}
+
+// Confirmaciones ($q.dialog de texto): escala + fundido.
+.q-dialog .q-transition--scale-enter-active,
+.q-dialog .q-transition--scale-leave-active,
+.q-dialog .q-transition--fade-enter-active,
+.q-dialog .q-transition--fade-leave-active {
+  transition: transform 0.24s var(--sw-ease), opacity 0.24s ease !important;
 }
 
 // Diálogos de confirmación ($q.dialog): mismos radios, tipografía y
@@ -296,9 +315,6 @@ input::-webkit-inner-spin-button {
   -webkit-appearance: none;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  * {
-    transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
-  }
-}
+// Nota: no hay bloque prefers-reduced-motion. Windows/Android suelen traer
+// "efectos de animación" desactivados y ese media query anulaba TODAS las
+// transiciones de la app (los diálogos aparecían de golpe).
