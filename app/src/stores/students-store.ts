@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import {
   collection,
   deleteDoc,
@@ -12,14 +12,21 @@ import {
 } from 'firebase/firestore';
 import { db } from 'src/boot/firebase';
 import { useCollection } from 'src/composables/firebase';
+import { useAuthStore } from 'src/stores/auth-store';
 import { StudentSchema, StudentDoc, StudentInput, StudentUpdate } from 'src/models/Student';
 import { PaymentDoc } from 'src/models/Payment';
 import { addMonthsIso, prevCycleIso, todayIso, toIsoMonth } from 'src/utils/dates';
 import { coverageAfterPayment, getStatus } from 'src/utils/subscription';
 
 export const useStudentsStore = defineStore('students', () => {
-  const studentsQuery = ref(
-    query(collection(db, 'students'), orderBy('name'))
+  const authStore = useAuthStore();
+
+  // Sin sesión no hay consulta: al cerrar sesión la suscripción se corta
+  // en vez de quedarse viva chocando contra las reglas de Firestore.
+  const studentsQuery = computed(() =>
+    authStore.isAuthenticated
+      ? query(collection(db, 'students'), orderBy('name'))
+      : null
   );
 
   const { documents: students, loading } = useCollection(

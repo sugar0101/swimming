@@ -11,6 +11,7 @@ import {
 } from 'firebase/firestore';
 import { db } from 'src/boot/firebase';
 import { useCollection } from 'src/composables/firebase';
+import { useAuthStore } from 'src/stores/auth-store';
 import { PaymentSchema } from 'src/models/Payment';
 import { PoolPaymentSchema } from 'src/models/PoolPayment';
 import { currentMonthIso, fromIsoDate, toIsoMonth } from 'src/utils/dates';
@@ -19,11 +20,19 @@ import { currentMonthIso, fromIsoDate, toIsoMonth } from 'src/utils/dates';
 export const usePaymentsStore = defineStore('payments', () => {
   const month = ref(currentMonthIso());
 
+  const authStore = useAuthStore();
+
+  // Sin sesión no hay consultas: al cerrar sesión se cortan las
+  // suscripciones y al volver a entrar se crean frescas.
   const paymentsQuery = computed(() =>
-    query(collection(db, 'payments'), where('month', '==', month.value))
+    authStore.isAuthenticated
+      ? query(collection(db, 'payments'), where('month', '==', month.value))
+      : null
   );
   const poolQuery = computed(() =>
-    query(collection(db, 'poolPayments'), where('month', '==', month.value))
+    authStore.isAuthenticated
+      ? query(collection(db, 'poolPayments'), where('month', '==', month.value))
+      : null
   );
 
   const { documents: payments, loading: loadingPayments } = useCollection(
