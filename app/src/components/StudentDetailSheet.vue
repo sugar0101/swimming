@@ -113,7 +113,7 @@ import { useDialogPluginComponent } from 'quasar';
 import { StudentDoc } from 'src/models/Student';
 import { useStudentsStore } from 'src/stores/students-store';
 import { formatMoney } from 'src/utils/money';
-import { ageFrom, formatShortDate } from 'src/utils/dates';
+import { formatShortDate } from 'src/utils/dates';
 import {
   STATUS_LABEL,
   dueLabel,
@@ -169,8 +169,9 @@ const startDate = computed(() =>
 );
 
 const ageLabel = computed(() => {
-  const age = ageFrom(student.value?.birthDate ?? '');
-  return age === null ? '—' : `${age} ${age === 1 ? 'año' : 'años'}`;
+  const age = student.value?.age;
+  if (age === null || age === undefined) return '—';
+  return `${age} ${age === 1 ? 'año' : 'años'}`;
 });
 
 const initials = computed(() =>

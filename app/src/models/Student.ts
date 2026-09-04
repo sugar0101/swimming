@@ -9,10 +9,9 @@ export const IsoDateSchema = z
 export const StudentSchema = z.object({
   name: z.string().min(1),
   phone: z.string().default(''),
-  // Documento de identidad y fecha de nacimiento: opcionales ('' si no hay).
-  // La edad se calcula desde birthDate para que nunca quede desactualizada.
+  // Documento de identidad y edad: opcionales.
   document: z.string().default(''),
-  birthDate: IsoDateSchema.or(z.literal('')).default(''),
+  age: z.number().nonnegative().nullable().default(null),
   startDate: IsoDateSchema,
   monthlyFee: z.number().nonnegative(),
   // Lo que la escuela paga a la piscina por este alumno cada mes: se
@@ -32,7 +31,7 @@ export type StudentInput = {
   name: string;
   phone: string;
   document: string;
-  birthDate: string;
+  age: number | null;
   startDate: string;
   monthlyFee: number;
   poolFee: number;

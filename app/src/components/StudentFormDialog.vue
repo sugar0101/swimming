@@ -54,16 +54,26 @@
                   />
                 </div>
 
-                <div>
-                  <date-field
-                    v-model="form.birthDate"
-                    label="Fecha de nacimiento"
-                    field-id="student-birth"
-                    placeholder="Elegir fecha"
-                    :max="today"
-                    clearable
+                <div class="sw-field">
+                  <label class="sw-overline sw-overline--plain sw-field__label" for="student-age">
+                    Edad
+                  </label>
+                  <q-input
+                    for="student-age"
+                    v-model.number="ageInput"
+                    borderless
+                    type="number"
+                    inputmode="numeric"
+                    placeholder="Ej: 9"
+                    :rules="[
+                      (v) =>
+                        v === '' ||
+                        v === null ||
+                        (typeof v === 'number' && v >= 0 && v <= 120) ||
+                        'Edad inválida',
+                    ]"
+                    hide-bottom-space
                   />
-                  <div v-if="ageLabel" class="student-form__hint">{{ ageLabel }}</div>
                 </div>
 
                 <div class="sw-field student-form__span-2">
@@ -215,7 +225,7 @@ import { useDialogPluginComponent, useQuasar } from 'quasar';
 import DateField from 'src/components/DateField.vue';
 import { StudentDoc, StudentInput } from 'src/models/Student';
 import { useStudentsStore } from 'src/stores/students-store';
-import { addMonthsIso, ageFrom, formatShortDate, todayIso } from 'src/utils/dates';
+import { addMonthsIso, formatShortDate, todayIso } from 'src/utils/dates';
 import { dueLabel, getStatus, STATUS_LABEL } from 'src/utils/subscription';
 
 // Se abre con $q.dialog({ component: StudentFormDialog, componentProps }):
@@ -230,25 +240,24 @@ const $q = useQuasar();
 const studentsStore = useStudentsStore();
 
 const isEdit = computed(() => !!props.student);
-const today = todayIso();
 
-const form = reactive<StudentInput>({
+const form = reactive<Omit<StudentInput, 'age'>>({
   name: props.student?.name ?? '',
   phone: props.student?.phone ?? '',
   document: props.student?.document ?? '',
-  birthDate: props.student?.birthDate ?? '',
   startDate: props.student?.startDate ?? todayIso(),
   monthlyFee: props.student?.monthlyFee ?? 170000,
   poolFee: props.student?.poolFee ?? 0,
   paid: true,
 });
+// La edad es opcional: '' en el input equivale a null en el modelo.
+const ageInput = ref<number | ''>(props.student?.age ?? '');
 const paidThrough = ref(props.student?.paidThrough ?? '');
 const saving = ref(false);
 
-const ageLabel = computed(() => {
-  const age = ageFrom(form.birthDate);
-  return age === null ? '' : `${age} ${age === 1 ? 'año' : 'años'}.`;
-});
+const ageValue = computed(() =>
+  typeof ageInput.value === 'number' ? ageInput.value : null
+);
 
 const coverageLabel = computed(() =>
   form.startDate ? formatShortDate(addMonthsIso(form.startDate, 1), true) : ''
@@ -268,7 +277,7 @@ const submit = async () => {
         name: form.name,
         phone: form.phone,
         document: form.document,
-        birthDate: form.birthDate,
+        age: ageValue.value,
         startDate: form.startDate,
         monthlyFee: form.monthlyFee,
         poolFee: form.poolFee,
@@ -276,7 +285,7 @@ const submit = async () => {
       });
       $q.notify({ message: 'Cambios guardados', color: 'positive' });
     } else {
-      await studentsStore.addStudent({ ...form });
+      await studentsStore.addStudent({ ...form, age: ageValue.value });
       $q.notify({ message: `${form.name.trim()} agregado`, color: 'positive' });
     }
     onDialogOK();

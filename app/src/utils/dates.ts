@@ -1,7 +1,6 @@
 import {
   addMonths,
   differenceInCalendarMonths,
-  differenceInYears,
   format,
   parseISO,
 } from 'date-fns';
@@ -62,12 +61,6 @@ export function prevCycleIso(startIso: string, currentIso: string): string {
   );
   while (k > 0 && cycleIso(startIso, k) >= currentIso) k -= 1;
   return cycleIso(startIso, k);
-}
-
-// Edad en años cumplidos ('' si no hay fecha de nacimiento).
-export function ageFrom(birthIso: string, today = new Date()): number | null {
-  if (!birthIso) return null;
-  return differenceInYears(today, parseISO(birthIso));
 }
 
 // "21 ago" / "21 ago 2026"
