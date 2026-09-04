@@ -1,82 +1,102 @@
 <template>
   <q-dialog
     v-model="open"
-    position="bottom"
+    maximized
     transition-show="slide-up"
     transition-hide="slide-down"
     :transition-duration="380"
   >
-    <q-card v-if="student" class="sw-sheet detail">
-      <div class="sw-sheet__grip" />
+    <q-card v-if="student" class="detail">
+      <!-- Barra superior fija: cerrar + acciones de edición. -->
+      <header class="detail__bar">
+        <div class="detail__bar-inner">
+          <q-btn flat round dense icon="sym_o_close" aria-label="Cerrar" v-close-popup />
+          <span class="detail__bar-title sw-heading">Alumno</span>
+          <q-btn
+            flat
+            round
+            dense
+            icon="sym_o_edit"
+            aria-label="Editar datos"
+            @click="$emit('edit', student)"
+          />
+        </div>
+      </header>
 
-      <div class="detail__header">
-        <div class="detail__avatar" :class="`detail__avatar--${status}`">{{ initials }}</div>
-        <div class="detail__titles">
-          <h2 class="detail__name sw-heading">{{ student.name }}</h2>
-          <div class="detail__status" :class="`detail__status--${status}`">
-            {{ statusLabel }} · {{ due }}
+      <div class="detail__scroll">
+        <div class="detail__inner">
+          <!-- Perfil: avatar grande, nombre y estado. -->
+          <section class="detail__hero">
+            <div class="detail__avatar" :class="`detail__avatar--${status}`">{{ initials }}</div>
+            <h2 class="detail__name sw-heading">{{ student.name }}</h2>
+            <div class="detail__status" :class="`detail__status--${status}`">
+              {{ statusLabel }} · {{ due }}
+            </div>
+          </section>
+
+          <dl class="detail__facts">
+            <div class="detail__fact">
+              <dt class="sw-overline sw-overline--plain">Mensualidad</dt>
+              <dd>{{ fee }}</dd>
+            </div>
+            <div class="detail__fact">
+              <dt class="sw-overline sw-overline--plain">Pagado hasta</dt>
+              <dd>{{ paidThrough }}</dd>
+            </div>
+            <div class="detail__fact">
+              <dt class="sw-overline sw-overline--plain">Inicio</dt>
+              <dd>{{ startDate }}</dd>
+            </div>
+            <div class="detail__fact">
+              <dt class="sw-overline sw-overline--plain">WhatsApp</dt>
+              <dd>{{ student.phone || '—' }}</dd>
+            </div>
+            <div class="detail__fact">
+              <dt class="sw-overline sw-overline--plain">Documento</dt>
+              <dd>{{ student.document || '—' }}</dd>
+            </div>
+            <div class="detail__fact">
+              <dt class="sw-overline sw-overline--plain">Edad</dt>
+              <dd>{{ ageLabel }}</dd>
+            </div>
+          </dl>
+
+          <div class="detail__actions">
+            <q-btn
+              unelevated
+              no-caps
+              color="primary"
+              class="sw-btn full-width"
+              icon="sym_o_payments"
+              :label="`Registrar pago · ${fee}`"
+              @click="$emit('pay', student)"
+            />
+            <q-btn
+              v-if="whatsapp"
+              unelevated
+              no-caps
+              class="sw-btn sw-btn--secondary full-width"
+              icon="fa-brands fa-whatsapp"
+              label="Recordar por WhatsApp"
+              :href="whatsapp"
+              target="_blank"
+              rel="noopener noreferrer"
+            />
+          </div>
+
+          <div class="detail__links">
+            <button type="button" class="detail__link" @click="$emit('edit', student)">
+              Editar datos
+            </button>
+            <button
+              type="button"
+              class="detail__link detail__link--danger"
+              @click="$emit('remove', student)"
+            >
+              Eliminar alumno
+            </button>
           </div>
         </div>
-        <q-btn flat round dense icon="sym_o_close" aria-label="Cerrar" v-close-popup />
-      </div>
-
-      <dl class="detail__facts">
-        <div class="detail__fact">
-          <dt class="sw-overline sw-overline--plain">Mensualidad</dt>
-          <dd>{{ fee }}</dd>
-        </div>
-        <div class="detail__fact">
-          <dt class="sw-overline sw-overline--plain">Pagado hasta</dt>
-          <dd>{{ paidThrough }}</dd>
-        </div>
-        <div class="detail__fact">
-          <dt class="sw-overline sw-overline--plain">Inicio</dt>
-          <dd>{{ startDate }}</dd>
-        </div>
-        <div class="detail__fact">
-          <dt class="sw-overline sw-overline--plain">WhatsApp</dt>
-          <dd>{{ student.phone || '—' }}</dd>
-        </div>
-        <div class="detail__fact">
-          <dt class="sw-overline sw-overline--plain">Documento</dt>
-          <dd>{{ student.document || '—' }}</dd>
-        </div>
-        <div class="detail__fact">
-          <dt class="sw-overline sw-overline--plain">Edad</dt>
-          <dd>{{ ageLabel }}</dd>
-        </div>
-      </dl>
-
-      <div class="detail__actions">
-        <q-btn
-          unelevated
-          no-caps
-          color="primary"
-          class="sw-btn full-width"
-          icon="sym_o_payments"
-          :label="`Registrar pago · ${fee}`"
-          @click="$emit('pay', student)"
-        />
-        <q-btn
-          v-if="whatsapp"
-          unelevated
-          no-caps
-          class="sw-btn sw-btn--secondary full-width"
-          icon="fa-brands fa-whatsapp"
-          label="Recordar por WhatsApp"
-          :href="whatsapp"
-          target="_blank"
-          rel="noopener noreferrer"
-        />
-      </div>
-
-      <div class="detail__links">
-        <button type="button" class="detail__link" @click="$emit('edit', student)">
-          Editar datos
-        </button>
-        <button type="button" class="detail__link detail__link--danger" @click="$emit('remove', student)">
-          Eliminar alumno
-        </button>
       </div>
     </q-card>
   </q-dialog>
@@ -147,25 +167,66 @@ const whatsapp = computed(() => {
 </script>
 
 <style scoped lang="scss">
-.detail__header {
+.detail {
+  display: flex;
+  flex-direction: column;
+  background: var(--sw-bg);
+}
+
+.detail__bar {
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--sw-border);
+  padding-top: env(safe-area-inset-top);
+}
+
+.detail__bar-inner {
+  max-width: 640px;
+  margin: 0 auto;
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 18px;
+  gap: 10px;
+  padding: 12px 16px;
+}
+
+.detail__bar-title {
+  flex: 1;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.detail__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.detail__inner {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px 16px calc(24px + env(safe-area-inset-bottom));
+}
+
+.detail__hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 22px;
 }
 
 .detail__avatar {
-  width: 48px;
-  height: 48px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--sw-font-heading);
   font-weight: 700;
-  flex-shrink: 0;
+  font-size: 1.375rem;
   background: var(--sw-primary-tint);
   color: #0e4f7e;
+  margin-bottom: 12px;
 
   &--vence_pronto {
     background: var(--sw-warning-tint);
@@ -177,23 +238,17 @@ const whatsapp = computed(() => {
   }
 }
 
-.detail__titles {
-  flex: 1;
-  min-width: 0;
-}
-
 .detail__name {
   margin: 0;
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: 1.375rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .detail__status {
-  font-size: 0.8125rem;
+  margin-top: 4px;
+  font-size: 0.875rem;
   font-weight: 600;
   color: #15803d;
 
@@ -209,8 +264,8 @@ const whatsapp = computed(() => {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  margin: 0 0 18px;
-  padding: 14px;
+  margin: 0 0 20px;
+  padding: 16px;
   border-radius: var(--sw-radius-md);
   background: var(--sw-surface-2);
 
@@ -218,6 +273,12 @@ const whatsapp = computed(() => {
     margin: 4px 0 0;
     font-weight: 600;
     font-size: 0.9375rem;
+  }
+}
+
+@media (min-width: 600px) {
+  .detail__facts {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
@@ -231,7 +292,7 @@ const whatsapp = computed(() => {
   display: flex;
   justify-content: center;
   gap: 24px;
-  margin-top: 16px;
+  margin-top: 20px;
 }
 
 .detail__link {
