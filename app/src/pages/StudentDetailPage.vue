@@ -353,6 +353,7 @@ import { useCollection } from 'src/composables/firebase';
 import DateField from 'src/components/DateField.vue';
 import EmptyState from 'src/components/EmptyState.vue';
 import MoneyField from 'src/components/MoneyField.vue';
+import RegisterPaymentDialog from 'src/components/RegisterPaymentDialog.vue';
 import SessionDialog from 'src/components/SessionDialog.vue';
 import { SessionDoc, SessionSchema } from 'src/models/Session';
 import { PaymentDoc, PaymentSchema } from 'src/models/Payment';
@@ -362,7 +363,6 @@ import { formatMoney } from 'src/utils/money';
 import { formatShortDate } from 'src/utils/dates';
 import {
   STATUS_LABEL,
-  coverageAfterPayment,
   dueLabel,
   getStatus,
   reminderMessage,
@@ -547,23 +547,13 @@ const whatsapp = computed(() => {
 });
 
 // ————— Acciones —————
+// Abre el mismo diálogo de Registrar pago de la app, con este alumno ya
+// seleccionado (campos de mensualidad, piscina y "paga hasta" editables).
 const confirmPayment = () => {
-  const chosen = student.value;
-  if (!chosen) return;
-  const coversUntil = formatShortDate(coverageAfterPayment(chosen), true);
+  if (!student.value) return;
   $q.dialog({
-    title: 'Registrar pago',
-    message: `${chosen.name} paga ${formatMoney(chosen.monthlyFee)} de la mensualidad y queda al día hasta el ${coversUntil}.`,
-    ok: { label: 'Registrar', color: 'primary', unelevated: true, noCaps: true },
-    cancel: { label: 'Cancelar', flat: true, noCaps: true },
-  }).onOk(async () => {
-    try {
-      await studentsStore.registerPayment(chosen);
-      $q.notify({ message: 'Pago registrado', color: 'positive' });
-    } catch (error) {
-      console.error(error);
-      $q.notify({ message: 'No se pudo registrar el pago.', color: 'negative' });
-    }
+    component: RegisterPaymentDialog,
+    componentProps: { studentId: studentId.value },
   });
 };
 
