@@ -1,109 +1,151 @@
 <template>
   <q-dialog
     ref="dialogRef"
-    position="bottom"
+    maximized
     transition-show="jump-up"
     transition-hide="jump-down"
     :transition-duration="320"
     @hide="onDialogHide"
   >
-    <q-card class="sw-sheet cash">
-      <div class="sw-sheet__grip" />
-
-      <div class="cash__header">
-        <div>
-          <h2 class="cash__title sw-heading">Caja del mes</h2>
-          <div class="cash__month">{{ monthTitle }}</div>
+    <q-card class="cash">
+      <!-- Barra superior fija: cerrar + título y mes. -->
+      <header class="cash__bar">
+        <div class="cash__bar-inner">
+          <q-btn
+            flat
+            round
+            dense
+            icon="sym_o_close"
+            aria-label="Cerrar"
+            v-close-popup
+          />
+          <div>
+            <h2 class="cash__title sw-heading">Caja del mes</h2>
+            <div class="cash__month">{{ monthTitle }}</div>
+          </div>
         </div>
-        <q-btn flat round dense icon="sym_o_close" aria-label="Cerrar" v-close-popup />
-      </div>
-
-      <!-- El neto es la cifra: lo demás explica de dónde sale. -->
-      <section class="cash__net">
-        <span class="sw-overline sw-overline--plain">Neto</span>
-        <div class="cash__net-value sw-heading" :class="{ 'text-negative': paymentsStore.net < 0 }">
-          {{ formatMoney(paymentsStore.net) }}
-        </div>
-        <div class="cash__line">
-          <span class="cash__line-dot" style="background: var(--sw-success)" />
-          <span class="cash__line-label">Recaudado</span>
-          <span class="cash__line-value">{{ formatMoney(paymentsStore.collected) }}</span>
-        </div>
-        <div class="cash__line">
-          <span class="cash__line-dot" style="background: var(--sw-warning)" />
-          <span class="cash__line-label">Piscina</span>
-          <span class="cash__line-value">−{{ formatMoney(paymentsStore.poolCost) }}</span>
-        </div>
-      </section>
+      </header>
 
       <div class="cash__scroll">
-        <section class="cash__section">
-          <div class="cash__section-head">
-            <h3 class="cash__section-title sw-heading">Pagos de piscina</h3>
-            <q-btn
-              unelevated
-              no-caps
-              dense
-              class="sw-chip-btn sw-chip-btn--primary"
-              icon="sym_o_add"
-              label="Agregar"
-              @click="openPoolDialog"
-            />
-          </div>
-
-          <div v-if="paymentsStore.poolPayments.length === 0" class="cash__empty">
-            Sin pagos de piscina este mes. Registra el arriendo o el mantenimiento para
-            calcular el neto.
-          </div>
-
-          <div v-for="payment in paymentsStore.poolPayments" :key="payment._id" class="cash__row">
-            <div class="cash__row-body">
-              <div class="cash__row-concept">{{ payment.concept }}</div>
-              <div class="cash__row-date">{{ formatShortDate(payment.date, true) }}</div>
+        <div class="cash__inner">
+          <!-- El neto es la cifra: lo demás explica de dónde sale. -->
+          <section class="cash__net">
+            <span class="sw-overline sw-overline--plain">Neto</span>
+            <div
+              class="cash__net-value sw-heading"
+              :class="{ 'text-negative': paymentsStore.net < 0 }"
+            >
+              {{ formatMoney(paymentsStore.net) }}
             </div>
-            <div class="cash__row-amount">−{{ formatMoney(payment.amount) }}</div>
-            <q-btn
-              flat
-              round
-              dense
-              size="sm"
-              icon="sym_o_delete"
-              class="cash__row-delete"
-              aria-label="Eliminar pago"
-              @click="confirmRemovePool(payment._id)"
-            />
-          </div>
-        </section>
+            <div class="cash__line">
+              <span
+                class="cash__line-dot"
+                style="background: var(--sw-success)"
+              />
+              <span class="cash__line-label">Recaudado</span>
+              <span class="cash__line-value">{{
+                formatMoney(paymentsStore.collected)
+              }}</span>
+            </div>
+            <div class="cash__line">
+              <span
+                class="cash__line-dot"
+                style="background: var(--sw-warning)"
+              />
+              <span class="cash__line-label">Piscina</span>
+              <span class="cash__line-value"
+                >−{{ formatMoney(paymentsStore.poolCost) }}</span
+              >
+            </div>
+          </section>
+          <section class="cash__section">
+            <div class="cash__section-head">
+              <h3 class="cash__section-title sw-heading">Pagos de piscina</h3>
+              <q-btn
+                unelevated
+                no-caps
+                dense
+                class="sw-chip-btn sw-chip-btn--primary"
+                icon="sym_o_add"
+                label="Agregar"
+                @click="openPoolDialog"
+              />
+            </div>
 
-        <section class="cash__section">
-          <div class="cash__section-head">
-            <h3 class="cash__section-title sw-heading">Mensualidades cobradas</h3>
-          </div>
+            <div
+              v-if="paymentsStore.poolPayments.length === 0"
+              class="cash__empty"
+            >
+              Sin pagos de piscina este mes. Registra el arriendo o el
+              mantenimiento para calcular el neto.
+            </div>
 
-          <div v-if="sortedPayments.length === 0" class="cash__empty">
-            Aún no hay pagos de alumnos este mes.
-          </div>
-
-          <div v-for="payment in sortedPayments" :key="payment._id" class="cash__row">
-            <div class="cash__row-body">
-              <div class="cash__row-concept">{{ payment.studentName }}</div>
-              <div class="cash__row-date">
-                {{ formatShortDate(payment.date) }} · cubre hasta {{ formatShortDate(payment.coversUntil) }}
+            <div
+              v-for="payment in paymentsStore.poolPayments"
+              :key="payment._id"
+              class="cash__row"
+            >
+              <div class="cash__row-body">
+                <div class="cash__row-concept">{{ payment.concept }}</div>
+                <div class="cash__row-date">
+                  {{ formatShortDate(payment.date, true) }}
+                </div>
               </div>
+              <div class="cash__row-amount">
+                −{{ formatMoney(payment.amount) }}
+              </div>
+              <q-btn
+                flat
+                round
+                dense
+                size="sm"
+                icon="sym_o_delete"
+                class="cash__row-delete"
+                aria-label="Eliminar pago"
+                @click="confirmRemovePool(payment._id)"
+              />
             </div>
-            <div class="cash__row-amount cash__row-amount--in">{{ formatMoney(payment.amount) }}</div>
-            <q-btn
-              flat
-              round
-              dense
-              size="sm"
-              icon="sym_o_delete"
-              class="cash__row-delete"
-              aria-label="Eliminar mensualidad"
-              @click="confirmRemovePayment(payment)"
-            />
-          </div>
-        </section>
+          </section>
+
+          <section class="cash__section">
+            <div class="cash__section-head">
+              <h3 class="cash__section-title sw-heading">
+                Mensualidades cobradas
+              </h3>
+            </div>
+
+            <div v-if="sortedPayments.length === 0" class="cash__empty">
+              Aún no hay pagos de alumnos este mes.
+            </div>
+
+            <div
+              v-for="payment in sortedPayments"
+              :key="payment._id"
+              class="cash__row"
+            >
+              <div class="cash__row-body">
+                <div class="cash__row-concept">{{ payment.studentName }}</div>
+                <div class="cash__row-date">
+                  {{ formatShortDate(payment.date) }} · cubre hasta
+                  {{ formatShortDate(payment.coversUntil) }}
+                </div>
+              </div>
+              <div class="cash__row-amount cash__row-amount--in">
+                {{ formatMoney(payment.amount) }}
+              </div>
+              <q-btn
+                flat
+                round
+                dense
+                size="sm"
+                icon="sym_o_delete"
+                class="cash__row-delete"
+                aria-label="Eliminar mensualidad"
+                @click="confirmRemovePayment(payment)"
+              />
+            </div>
+          </section>
+        </div>
       </div>
     </q-card>
   </q-dialog>
@@ -144,7 +186,12 @@ const confirmRemovePool = (id: string) => {
   $q.dialog({
     title: 'Eliminar pago de piscina',
     message: 'Este pago dejará de restarse del neto del mes.',
-    ok: { label: 'Eliminar', color: 'negative', unelevated: true, noCaps: true },
+    ok: {
+      label: 'Eliminar',
+      color: 'negative',
+      unelevated: true,
+      noCaps: true,
+    },
     cancel: { label: 'Cancelar', flat: true, noCaps: true },
   }).onOk(async () => {
     await paymentsStore.removePoolPayment(id);
@@ -155,7 +202,12 @@ const confirmRemovePayment = (payment: PaymentDoc) => {
   $q.dialog({
     title: 'Eliminar mensualidad',
     message: `Se elimina el cobro a ${payment.studentName} y su cobertura retrocede un mes.`,
-    ok: { label: 'Eliminar', color: 'negative', unelevated: true, noCaps: true },
+    ok: {
+      label: 'Eliminar',
+      color: 'negative',
+      unelevated: true,
+      noCaps: true,
+    },
     cancel: { label: 'Cancelar', flat: true, noCaps: true },
   }).onOk(async () => {
     await studentsStore.undoPayment(payment);
@@ -165,22 +217,31 @@ const confirmRemovePayment = (payment: PaymentDoc) => {
 
 <style scoped lang="scss">
 .cash {
-  max-height: 88vh;
   display: flex;
   flex-direction: column;
+  background: var(--sw-bg);
 }
 
-.cash__header {
+.cash__bar {
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--sw-border);
+  padding-top: env(safe-area-inset-top);
+}
+
+.cash__bar-inner {
+  max-width: 640px;
+  margin: 0 auto;
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 14px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
 }
 
 .cash__title {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 700;
+  line-height: 1.2;
 }
 
 .cash__month {
@@ -192,7 +253,6 @@ const confirmRemovePayment = (payment: PaymentDoc) => {
   padding: 16px;
   border-radius: var(--sw-radius-md);
   background: var(--sw-surface-2);
-  flex-shrink: 0;
 }
 
 .cash__net-value {
@@ -232,10 +292,15 @@ const confirmRemovePayment = (payment: PaymentDoc) => {
 }
 
 .cash__scroll {
-  overflow-y: auto;
+  flex: 1;
   min-height: 0;
-  margin: 0 -20px;
-  padding: 0 20px;
+  overflow-y: auto;
+}
+
+.cash__inner {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 20px 16px calc(24px + env(safe-area-inset-bottom));
 }
 
 .cash__section {

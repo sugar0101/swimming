@@ -113,6 +113,8 @@ export default defineConfig(function (/* ctx */) {
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#framework
     framework: {
       cssAddon: true,
+      // Meses y días en español para q-date y demás componentes.
+      lang: 'es',
       plugins: ['Cookies', 'Dialog', 'Notify', 'Loading', 'SessionStorage'],
       config: {
         notify: {

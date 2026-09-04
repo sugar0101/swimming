@@ -54,17 +54,14 @@
                   />
                 </div>
 
-                <div class="sw-field">
-                  <label class="sw-overline sw-overline--plain sw-field__label" for="student-birth">
-                    Fecha de nacimiento
-                  </label>
-                  <q-input
-                    for="student-birth"
+                <div>
+                  <date-field
                     v-model="form.birthDate"
-                    borderless
-                    type="date"
+                    label="Fecha de nacimiento"
+                    field-id="student-birth"
+                    placeholder="Elegir fecha"
                     :max="today"
-                    hide-bottom-space
+                    clearable
                   />
                   <div v-if="ageLabel" class="student-form__hint">{{ ageLabel }}</div>
                 </div>
@@ -91,17 +88,12 @@
               <span class="sw-overline">Mensualidad</span>
 
               <div class="student-form__grid">
-                <div class="sw-field">
-                  <label class="sw-overline sw-overline--plain sw-field__label" for="student-start">
-                    Fecha de inicio
-                  </label>
-                  <q-input
-                    for="student-start"
+                <div>
+                  <date-field
                     v-model="form.startDate"
-                    borderless
-                    type="date"
-                    :rules="[(v) => !!v || 'Elige la fecha']"
-                    hide-bottom-space
+                    label="Fecha de inicio"
+                    field-id="student-start"
+                    required-message="Elige la fecha"
                   />
                   <div class="student-form__hint">
                     La mensualidad siempre vence este día del mes.
@@ -126,17 +118,12 @@
                 </div>
 
                 <!-- Al editar, el vencimiento se puede corregir a mano. -->
-                <div v-if="isEdit" class="sw-field student-form__span-2">
-                  <label class="sw-overline sw-overline--plain sw-field__label" for="student-paid-through">
-                    Pagado hasta
-                  </label>
-                  <q-input
-                    for="student-paid-through"
+                <div v-if="isEdit" class="student-form__span-2">
+                  <date-field
                     v-model="paidThrough"
-                    borderless
-                    type="date"
-                    :rules="[(v) => !!v || 'Elige la fecha']"
-                    hide-bottom-space
+                    label="Pagado hasta"
+                    field-id="student-paid-through"
+                    required-message="Elige la fecha"
                   />
                   <div class="student-form__hint">{{ paidThroughHint }}</div>
                 </div>
@@ -204,6 +191,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue';
 import { useDialogPluginComponent, useQuasar } from 'quasar';
+import DateField from 'src/components/DateField.vue';
 import { StudentDoc, StudentInput } from 'src/models/Student';
 import { useStudentsStore } from 'src/stores/students-store';
 import { addMonthsIso, ageFrom, formatShortDate, todayIso } from 'src/utils/dates';

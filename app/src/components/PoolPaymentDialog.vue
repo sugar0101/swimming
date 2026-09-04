@@ -48,19 +48,12 @@
             />
           </div>
 
-          <div class="sw-field">
-            <label class="sw-overline sw-overline--plain sw-field__label" for="pool-date">
-              Fecha
-            </label>
-            <q-input
-              for="pool-date"
-              v-model="form.date"
-              borderless
-              type="date"
-              :rules="[(v) => !!v || 'Elige la fecha']"
-              hide-bottom-space
-            />
-          </div>
+          <date-field
+            v-model="form.date"
+            label="Fecha"
+            field-id="pool-date"
+            required-message="Elige la fecha"
+          />
         </div>
 
         <q-btn
@@ -80,6 +73,7 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
 import { useDialogPluginComponent, useQuasar } from 'quasar';
+import DateField from 'src/components/DateField.vue';
 import { usePaymentsStore } from 'src/stores/payments-store';
 import { todayIso } from 'src/utils/dates';
 
