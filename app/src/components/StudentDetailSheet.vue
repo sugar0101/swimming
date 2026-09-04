@@ -26,56 +26,67 @@
 
       <div class="detail__scroll">
         <div class="detail__inner">
-          <!-- Perfil: avatar grande, nombre y estado. -->
+          <!-- Perfil compacto: avatar, nombre y estado. -->
           <section class="detail__hero">
             <div class="detail__avatar" :class="`detail__avatar--${status}`">{{ initials }}</div>
-            <h2 class="detail__name sw-heading">{{ student.name }}</h2>
-            <div class="detail__status" :class="`detail__status--${status}`">
-              {{ statusLabel }} · {{ due }}
+            <div class="detail__hero-text">
+              <h2 class="detail__name sw-heading">{{ student.name }}</h2>
+              <div class="detail__status" :class="`detail__status--${status}`">
+                {{ statusLabel }} · {{ due }}
+              </div>
             </div>
           </section>
 
-          <dl class="detail__facts">
-            <div class="detail__fact">
-              <dt class="sw-overline sw-overline--plain">Mensualidad</dt>
-              <dd>{{ fee }}</dd>
-            </div>
-            <div class="detail__fact">
-              <dt class="sw-overline sw-overline--plain">Piscina</dt>
-              <dd>{{ poolFeeLabel }}</dd>
-            </div>
-            <div class="detail__fact">
-              <dt class="sw-overline sw-overline--plain">Pagado hasta</dt>
-              <dd>{{ paidThrough }}</dd>
-            </div>
-            <div class="detail__fact">
-              <dt class="sw-overline sw-overline--plain">Inicio</dt>
-              <dd>{{ startDate }}</dd>
-            </div>
-            <div class="detail__fact">
-              <dt class="sw-overline sw-overline--plain">WhatsApp</dt>
-              <dd>{{ student.phone || '—' }}</dd>
-            </div>
-            <div class="detail__fact">
-              <dt class="sw-overline sw-overline--plain">Documento</dt>
-              <dd>{{ student.document || '—' }}</dd>
-            </div>
-            <div class="detail__fact">
-              <dt class="sw-overline sw-overline--plain">Edad</dt>
-              <dd>{{ ageLabel }}</dd>
-            </div>
-          </dl>
+          <!-- Tabs: cada cosa en su lugar. -->
+          <div class="detail__tabs" role="tablist" aria-label="Secciones del alumno">
+            <button
+              v-for="tab in TABS"
+              :key="tab.key"
+              type="button"
+              role="tab"
+              class="detail__tab"
+              :class="{ 'detail__tab--active': activeTab === tab.key }"
+              :aria-selected="activeTab === tab.key"
+              @click="activeTab = tab.key"
+            >
+              {{ tab.label }}
+              <span v-if="tab.count" class="detail__tab-count">{{ tab.count }}</span>
+            </button>
+          </div>
 
-          <div class="detail__actions">
-            <q-btn
-              unelevated
-              no-caps
-              color="primary"
-              class="sw-btn full-width"
-              icon="sym_o_payments"
-              :label="`Registrar pago · ${fee}`"
-              @click="act('pay')"
-            />
+          <!-- Datos -->
+          <div v-if="activeTab === 'datos'" class="detail__panel">
+            <dl class="detail__facts">
+              <div class="detail__fact">
+                <dt class="sw-overline sw-overline--plain">Mensualidad</dt>
+                <dd>{{ fee }}</dd>
+              </div>
+              <div class="detail__fact">
+                <dt class="sw-overline sw-overline--plain">Piscina</dt>
+                <dd>{{ poolFeeLabel }}</dd>
+              </div>
+              <div class="detail__fact">
+                <dt class="sw-overline sw-overline--plain">Pagado hasta</dt>
+                <dd>{{ paidThrough }}</dd>
+              </div>
+              <div class="detail__fact">
+                <dt class="sw-overline sw-overline--plain">Inicio</dt>
+                <dd>{{ startDate }}</dd>
+              </div>
+              <div class="detail__fact">
+                <dt class="sw-overline sw-overline--plain">WhatsApp</dt>
+                <dd>{{ student.phone || '—' }}</dd>
+              </div>
+              <div class="detail__fact">
+                <dt class="sw-overline sw-overline--plain">Documento</dt>
+                <dd>{{ student.document || '—' }}</dd>
+              </div>
+              <div class="detail__fact">
+                <dt class="sw-overline sw-overline--plain">Edad</dt>
+                <dd>{{ ageLabel }}</dd>
+              </div>
+            </dl>
+
             <q-btn
               v-if="whatsapp"
               unelevated
@@ -87,12 +98,27 @@
               target="_blank"
               rel="noopener noreferrer"
             />
+
+            <div class="detail__links">
+              <button type="button" class="detail__link" @click="act('edit')">
+                Editar datos
+              </button>
+              <button
+                type="button"
+                class="detail__link detail__link--danger"
+                @click="act('remove')"
+              >
+                Eliminar alumno
+              </button>
+            </div>
           </div>
 
-          <!-- Proceso: la bitácora de sesiones del alumno. -->
-          <section class="detail__sessions">
-            <div class="detail__sessions-head">
-              <h3 class="detail__sessions-title sw-heading">Proceso</h3>
+          <!-- Proceso -->
+          <div v-else-if="activeTab === 'proceso'" class="detail__panel">
+            <div class="detail__panel-head">
+              <div class="detail__panel-summary">
+                {{ sessionsSummary || 'Lleva aquí la bitácora de entrenamientos.' }}
+              </div>
               <q-btn
                 unelevated
                 no-caps
@@ -104,11 +130,7 @@
               />
             </div>
 
-            <div v-if="sessionsSummary" class="detail__sessions-summary">
-              {{ sessionsSummary }}
-            </div>
-
-            <div v-if="sortedSessions.length === 0" class="detail__sessions-empty">
+            <div v-if="sortedSessions.length === 0" class="detail__empty">
               Aún no hay sesiones registradas. Registra la primera para llevar el
               proceso del alumno.
             </div>
@@ -145,24 +167,22 @@
                 dense
                 size="sm"
                 icon="sym_o_delete"
-                class="detail__session-delete"
+                class="detail__row-delete"
                 aria-label="Eliminar sesión"
                 @click.stop="confirmRemoveSession(session)"
               />
             </button>
-          </section>
+          </div>
 
-          <!-- Historial de pagos del alumno (todos los meses). -->
-          <section class="detail__payments">
-            <div class="detail__payments-head">
-              <h3 class="detail__payments-title sw-heading">Pagos</h3>
+          <!-- Pagos -->
+          <div v-else class="detail__panel">
+            <div class="detail__panel-head">
+              <div class="detail__panel-summary">
+                {{ paymentsSummary || 'El historial de pagos vive aquí.' }}
+              </div>
             </div>
 
-            <div v-if="paymentsSummary" class="detail__payments-summary">
-              {{ paymentsSummary }}
-            </div>
-
-            <div v-if="sortedPayments.length === 0" class="detail__payments-empty">
+            <div v-if="sortedPayments.length === 0" class="detail__empty">
               Aún no hay pagos registrados de este alumno.
             </div>
 
@@ -191,27 +211,29 @@
                 dense
                 size="sm"
                 icon="sym_o_delete"
-                class="detail__payment-delete"
+                class="detail__row-delete"
                 aria-label="Eliminar pago"
                 @click="confirmRemovePayment(payment)"
               />
             </div>
-          </section>
-
-          <div class="detail__links">
-            <button type="button" class="detail__link" @click="act('edit')">
-              Editar datos
-            </button>
-            <button
-              type="button"
-              class="detail__link detail__link--danger"
-              @click="act('remove')"
-            >
-              Eliminar alumno
-            </button>
           </div>
         </div>
       </div>
+
+      <!-- Registrar pago siempre a mano. -->
+      <footer class="detail__footer">
+        <div class="detail__inner detail__footer-inner">
+          <q-btn
+            unelevated
+            no-caps
+            color="primary"
+            class="sw-btn full-width"
+            icon="sym_o_payments"
+            :label="`Registrar pago · ${fee}`"
+            @click="act('pay')"
+          />
+        </div>
+      </footer>
     </q-card>
   </q-dialog>
 </template>
@@ -310,6 +332,17 @@ const openSessionDialog = (session?: SessionDoc) => {
   });
 };
 
+const confirmRemoveSession = (session: SessionDoc) => {
+  $q.dialog({
+    title: 'Eliminar sesión',
+    message: `Se elimina la sesión del ${formatShortDate(session.date, true)} de la bitácora.`,
+    ok: { label: 'Eliminar', color: 'negative', unelevated: true, noCaps: true },
+    cancel: { label: 'Cancelar', flat: true, noCaps: true },
+  }).onOk(async () => {
+    await deleteDoc(doc(db, `sessions/${session._id}`));
+  });
+};
+
 // Historial de pagos del alumno (sin orderBy: se ordena en cliente para
 // no requerir índice compuesto).
 const paymentsQuery = ref(
@@ -339,16 +372,15 @@ const confirmRemovePayment = (payment: PaymentDoc) => {
   });
 };
 
-const confirmRemoveSession = (session: SessionDoc) => {
-  $q.dialog({
-    title: 'Eliminar sesión',
-    message: `Se elimina la sesión del ${formatShortDate(session.date, true)} de la bitácora.`,
-    ok: { label: 'Eliminar', color: 'negative', unelevated: true, noCaps: true },
-    cancel: { label: 'Cancelar', flat: true, noCaps: true },
-  }).onOk(async () => {
-    await deleteDoc(doc(db, `sessions/${session._id}`));
-  });
-};
+// Tabs
+type TabKey = 'datos' | 'proceso' | 'pagos';
+const activeTab = ref<TabKey>('datos');
+
+const TABS = computed(() => [
+  { key: 'datos' as TabKey, label: 'Datos', count: 0 },
+  { key: 'proceso' as TabKey, label: 'Proceso', count: sessions.value.length },
+  { key: 'pagos' as TabKey, label: 'Pagos', count: studentPayments.value.length },
+]);
 
 const status = computed(() =>
   student.value ? getStatus(student.value.paidThrough) : 'al_dia'
@@ -427,30 +459,30 @@ const whatsapp = computed(() => {
 .detail__inner {
   max-width: 640px;
   margin: 0 auto;
-  padding: 24px 16px calc(24px + env(safe-area-inset-bottom));
+  padding: 20px 16px 24px;
 }
 
+// Hero compacto: avatar a la izquierda, nombre y estado al lado.
 .detail__hero {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  text-align: center;
-  margin-bottom: 22px;
+  gap: 14px;
+  margin-bottom: 18px;
 }
 
 .detail__avatar {
-  width: 72px;
-  height: 72px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--sw-font-heading);
   font-weight: 700;
-  font-size: 1.375rem;
+  font-size: 1.125rem;
+  flex-shrink: 0;
   background: var(--sw-primary-tint);
   color: #0e4f7e;
-  margin-bottom: 12px;
 
   &--vence_pronto {
     background: var(--sw-warning-tint);
@@ -462,16 +494,24 @@ const whatsapp = computed(() => {
   }
 }
 
+.detail__hero-text {
+  flex: 1;
+  min-width: 0;
+}
+
 .detail__name {
   margin: 0;
-  font-size: 1.375rem;
+  font-size: 1.25rem;
   font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .detail__status {
-  margin-top: 4px;
+  margin-top: 2px;
   font-size: 0.875rem;
   font-weight: 600;
   color: #15803d;
@@ -484,11 +524,75 @@ const whatsapp = computed(() => {
   }
 }
 
+// Tabs tipo píldora, como los filtros de la portada.
+.detail__tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.detail__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--sw-border);
+  background: var(--sw-bg);
+  color: var(--sw-text-2);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 120ms var(--sw-ease), border-color 120ms var(--sw-ease),
+    color 120ms var(--sw-ease);
+
+  &:focus-visible {
+    outline: 2px solid var(--sw-primary);
+    outline-offset: 2px;
+  }
+
+  &--active {
+    background: var(--sw-text);
+    border-color: var(--sw-text);
+    color: #fff;
+
+    .detail__tab-count {
+      color: rgba(255, 255, 255, 0.7);
+    }
+  }
+}
+
+.detail__tab-count {
+  color: var(--sw-text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.detail__panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.detail__panel-summary {
+  font-size: 0.8125rem;
+  color: var(--sw-text-2);
+}
+
+.detail__empty {
+  padding: 14px 0;
+  font-size: 0.875rem;
+  color: var(--sw-text-2);
+}
+
 .detail__facts {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin: 0 0 20px;
+  gap: 14px 12px;
+  margin: 0 0 14px;
   padding: 16px;
   border: 1px solid var(--sw-border);
   border-radius: var(--sw-radius-md);
@@ -505,41 +609,6 @@ const whatsapp = computed(() => {
   .detail__facts {
     grid-template-columns: repeat(3, 1fr);
   }
-}
-
-.detail__actions {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.detail__sessions {
-  margin-top: 28px;
-}
-
-.detail__sessions-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.detail__sessions-title {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 700;
-}
-
-.detail__sessions-summary {
-  margin-top: 4px;
-  font-size: 0.8125rem;
-  color: var(--sw-text-2);
-}
-
-.detail__sessions-empty {
-  padding: 14px 0;
-  font-size: 0.875rem;
-  color: var(--sw-text-2);
 }
 
 // Cada sesión es una tarjeta con borde gris suave.
@@ -602,39 +671,6 @@ const whatsapp = computed(() => {
   white-space: pre-line;
 }
 
-.detail__session-delete {
-  color: var(--sw-text-3);
-}
-
-.detail__payments {
-  margin-top: 28px;
-}
-
-.detail__payments-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.detail__payments-title {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 700;
-}
-
-.detail__payments-summary {
-  margin-top: 4px;
-  font-size: 0.8125rem;
-  color: var(--sw-text-2);
-}
-
-.detail__payments-empty {
-  padding: 14px 0;
-  font-size: 0.875rem;
-  color: var(--sw-text-2);
-}
-
 // Cada pago es una tarjeta con borde gris suave.
 .detail__payment {
   display: flex;
@@ -672,7 +708,7 @@ const whatsapp = computed(() => {
   white-space: nowrap;
 }
 
-.detail__payment-delete {
+.detail__row-delete {
   color: var(--sw-text-3);
 }
 
@@ -680,7 +716,7 @@ const whatsapp = computed(() => {
   display: flex;
   justify-content: center;
   gap: 24px;
-  margin-top: 20px;
+  margin-top: 16px;
 }
 
 .detail__link {
@@ -702,5 +738,16 @@ const whatsapp = computed(() => {
     outline-offset: 2px;
     border-radius: 4px;
   }
+}
+
+.detail__footer {
+  flex-shrink: 0;
+  border-top: 1px solid var(--sw-border);
+  background: var(--sw-bg);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.detail__footer-inner {
+  padding: 12px 16px;
 }
 </style>
