@@ -211,35 +211,58 @@
           />
         </div>
 
+        <!-- Filtros: todos / mensualidad / piscina -->
+        <div class="detail__filters" role="tablist" aria-label="Filtrar pagos">
+          <button
+            v-for="filter in payFilters"
+            :key="filter.key"
+            type="button"
+            role="tab"
+            class="detail__filter"
+            :class="{ 'detail__filter--active': payFilter === filter.key }"
+            :aria-selected="payFilter === filter.key"
+            @click="payFilter = filter.key"
+          >
+            {{ filter.label }}
+            <span class="detail__filter-count">{{ filter.count }}</span>
+          </button>
+        </div>
+
         <empty-state
-          v-if="sortedPayments.length === 0"
+          v-if="visiblePayRows.length === 0"
           icon="sym_o_payments"
-          title="Sin pagos"
+          :title="payEmptyText"
         />
 
-        <div v-for="payment in sortedPayments" :key="payment._id" class="sw-card detail__payment">
-          <div class="detail__payment-body">
-            <div class="detail__payment-date">
-              {{ formatShortDate(payment.date, true) }}
+        <div v-else class="sw-card detail__paytable">
+          <div v-for="row in visiblePayRows" :key="row.key" class="detail__payrow">
+            <div class="detail__payrow-icon" :class="`detail__payrow-icon--${row.kind}`">
+              <q-icon
+                :name="row.kind === 'mensualidad' ? 'sym_o_south_west' : 'sym_o_north_east'"
+                size="16px"
+              />
             </div>
-            <div class="detail__payment-meta">
-              cubre hasta {{ formatShortDate(payment.coversUntil)
-              }}<template v-if="payment.poolFee > 0">
-                · piscina −{{ formatMoney(payment.poolFee) }}</template
-              >
+            <div class="detail__payment-body">
+              <div class="detail__payment-date">{{ row.title }}</div>
+              <div class="detail__payment-meta">{{ row.meta }}</div>
             </div>
+            <div
+              class="detail__payrow-amount"
+              :class="{ 'detail__payrow-amount--in': row.kind === 'mensualidad' }"
+            >
+              {{ row.kind === 'mensualidad' ? '' : '−' }}{{ formatMoney(row.amount) }}
+            </div>
+            <q-btn
+              flat
+              round
+              dense
+              size="sm"
+              icon="sym_o_delete"
+              class="detail__row-delete"
+              :aria-label="row.kind === 'mensualidad' ? 'Eliminar mensualidad' : 'Eliminar pago de piscina'"
+              @click="removePayRow(row)"
+            />
           </div>
-          <div class="detail__payment-amount">{{ formatMoney(payment.amount) }}</div>
-          <q-btn
-            flat
-            round
-            dense
-            size="sm"
-            icon="sym_o_delete"
-            class="detail__row-delete"
-            aria-label="Eliminar pago"
-            @click="confirmRemovePayment(payment)"
-          />
         </div>
       </div>
 
@@ -357,6 +380,7 @@ import RegisterPaymentDialog from 'src/components/RegisterPaymentDialog.vue';
 import SessionDialog from 'src/components/SessionDialog.vue';
 import { SessionDoc, SessionSchema } from 'src/models/Session';
 import { PaymentDoc, PaymentSchema } from 'src/models/Payment';
+import { PoolPaymentSchema } from 'src/models/PoolPayment';
 import { StudentDoc } from 'src/models/Student';
 import { useStudentsStore } from 'src/stores/students-store';
 import { formatMoney } from 'src/utils/money';
@@ -515,7 +539,7 @@ const sortedSessions = computed(() =>
   [...sessions.value].sort((a, b) => (a.date < b.date ? 1 : -1))
 );
 
-// ————— Pagos del alumno —————
+// ————— Pagos del alumno: mensualidades + sus pagos de piscina —————
 const paymentsQuery = computed(() =>
   studentId.value
     ? query(collection(db, 'payments'), where('studentId', '==', studentId.value))
@@ -523,14 +547,90 @@ const paymentsQuery = computed(() =>
 );
 const { documents: studentPayments } = useCollection(paymentsQuery, PaymentSchema);
 
-const sortedPayments = computed(() =>
-  [...studentPayments.value].sort((a, b) => (a.date < b.date ? 1 : -1))
+const poolQuery = computed(() =>
+  studentId.value
+    ? query(collection(db, 'poolPayments'), where('studentId', '==', studentId.value))
+    : null
 );
+const { documents: studentPool } = useCollection(poolQuery, PoolPaymentSchema);
+
+type PayFilter = 'todos' | 'mensualidad' | 'piscina';
+const payFilter = ref<PayFilter>('todos');
+
+type PayRow = {
+  key: string;
+  kind: 'mensualidad' | 'piscina';
+  title: string;
+  meta: string;
+  amount: number;
+  date: string;
+  payment?: PaymentDoc;
+  poolId?: string;
+};
+
+const payRows = computed<PayRow[]>(() => {
+  const mensualidades = studentPayments.value.map<PayRow>((p) => ({
+    key: `m-${p._id}`,
+    kind: 'mensualidad',
+    title: 'Mensualidad',
+    meta: `${formatShortDate(p.date, true)} · cubre hasta ${formatShortDate(p.coversUntil)}`,
+    amount: p.amount,
+    date: p.date,
+    payment: p,
+  }));
+
+  const piscina = studentPool.value.map<PayRow>((p) => ({
+    key: `p-${p._id}`,
+    kind: 'piscina',
+    title: 'Piscina',
+    meta: formatShortDate(p.date, true),
+    amount: p.amount,
+    date: p.date,
+    poolId: p._id,
+  }));
+
+  return [...mensualidades, ...piscina].sort((a, b) => (a.date < b.date ? 1 : -1));
+});
+
+const countPayBy = (kind: PayRow['kind']) =>
+  payRows.value.filter((r) => r.kind === kind).length;
+
+const payFilters = computed(() => [
+  { key: 'todos' as PayFilter, label: 'Todos', count: payRows.value.length },
+  { key: 'mensualidad' as PayFilter, label: 'Mensualidad', count: countPayBy('mensualidad') },
+  { key: 'piscina' as PayFilter, label: 'Piscina', count: countPayBy('piscina') },
+]);
+
+const visiblePayRows = computed(() =>
+  payRows.value.filter((r) => payFilter.value === 'todos' || r.kind === payFilter.value)
+);
+
+const payEmptyText = computed(() => {
+  if (payFilter.value === 'piscina') return 'Sin pagos de piscina';
+  if (payFilter.value === 'mensualidad') return 'Sin mensualidades';
+  return 'Sin pagos';
+});
+
+const removePayRow = (row: PayRow) => {
+  if (row.kind === 'mensualidad' && row.payment) confirmRemovePayment(row.payment);
+  else if (row.poolId) confirmRemovePool(row.poolId);
+};
+
+const confirmRemovePool = (id: string) => {
+  $q.dialog({
+    title: 'Eliminar pago de piscina',
+    message: 'Este pago dejará de restarse del neto del mes.',
+    ok: { label: 'Eliminar', color: 'negative', unelevated: true, noCaps: true },
+    cancel: { label: 'Cancelar', flat: true, noCaps: true },
+  }).onOk(async () => {
+    await deleteDoc(doc(db, `poolPayments/${id}`));
+  });
+};
 
 const TABS = computed(() => [
   { key: 'datos' as TabKey, label: 'Datos básicos', count: 0 },
   { key: 'asistencias' as TabKey, label: 'Asistencias', count: sessions.value.length },
-  { key: 'pagos' as TabKey, label: 'Pagos', count: studentPayments.value.length },
+  { key: 'pagos' as TabKey, label: 'Pagos', count: payRows.value.length },
   { key: 'mensualidad' as TabKey, label: 'Mensualidad', count: 0 },
 ]);
 
@@ -875,13 +975,106 @@ const confirmRemovePayment = (payment: PaymentDoc) => {
   white-space: pre-line;
 }
 
-// Cada pago es una tarjeta.
-.detail__payment {
+// Filtros píldora del historial de pagos.
+.detail__filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.detail__filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 13px;
+  border-radius: 999px;
+  border: 1px solid var(--sw-border);
+  background: var(--sw-bg);
+  color: var(--sw-text-2);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 120ms var(--sw-ease), border-color 120ms var(--sw-ease),
+    color 120ms var(--sw-ease);
+
+  &:focus-visible {
+    outline: 2px solid var(--sw-primary);
+    outline-offset: 2px;
+  }
+
+  &--active {
+    background: var(--sw-text);
+    border-color: var(--sw-text);
+    color: #fff;
+
+    .detail__filter-count {
+      color: rgba(255, 255, 255, 0.7);
+    }
+  }
+}
+
+.detail__filter-count {
+  color: var(--sw-text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+// Historial de pagos: una tarjeta con filas divididas.
+.detail__paytable {
+  overflow: hidden;
+}
+
+.detail__payrow {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-top: 10px;
+  gap: 12px;
   padding: 12px 14px;
+
+  & + & {
+    border-top: 1px solid var(--sw-border);
+  }
+}
+
+.detail__payrow-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  &--mensualidad {
+    background: var(--sw-success-tint);
+    color: #166534;
+  }
+
+  &--piscina {
+    background: var(--sw-warning-tint);
+    color: #92400e;
+  }
+}
+
+.detail__payrow-amount {
+  font-family: var(--sw-font-heading);
+  font-weight: 700;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  color: #92400e;
+  white-space: nowrap;
+
+  &--in {
+    color: #15803d;
+  }
 }
 
 .detail__payment-body {

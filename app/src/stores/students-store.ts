@@ -88,6 +88,7 @@ export const useStudentsStore = defineStore('students', () => {
           amount: input.poolFee,
           date: todayIso(),
           month: toIsoMonth(new Date()),
+          studentId: studentRef.id,
           createdAt: serverTimestamp(),
         });
       }
@@ -150,6 +151,7 @@ export const useStudentsStore = defineStore('students', () => {
         amount: poolFee,
         date: today,
         month,
+        studentId: student._id,
         createdAt: serverTimestamp(),
       });
     }

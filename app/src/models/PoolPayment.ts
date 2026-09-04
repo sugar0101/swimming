@@ -8,6 +8,9 @@ export const PoolPaymentSchema = z.object({
   amount: z.number().nonnegative(),
   date: IsoDateSchema,
   month: z.string().regex(/^\d{4}-\d{2}$/),
+  // Alumno al que corresponde este pago de piscina (los pagos manuales,
+  // como arriendo o mantenimiento, no llevan alumno).
+  studentId: z.string().optional(),
   createdAt: z.unknown().optional(),
 });
 
