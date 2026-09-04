@@ -320,7 +320,7 @@
             no-caps
             class="sw-btn sw-btn--secondary"
             icon="sym_o_payments"
-            :label="`Registrar pago · ${fee}`"
+            label="Registrar pago"
             @click="confirmPayment"
           />
         </div>
@@ -636,7 +636,6 @@ const TABS = computed(() => [
 
 // ————— Derivados —————
 const due = computed(() => (student.value ? dueLabel(student.value.paidThrough) : ''));
-const fee = computed(() => formatMoney(student.value?.monthlyFee ?? 0));
 
 const whatsapp = computed(() => {
   if (!student.value?.phone.trim()) return '';

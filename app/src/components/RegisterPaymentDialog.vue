@@ -13,10 +13,7 @@
           <button type="button" class="sw-modal__back" aria-label="Volver" v-close-popup>
             <q-icon name="sym_o_chevron_left" size="22px" />
           </button>
-          <div>
-            <h2 class="sw-modal__title">Registrar pago</h2>
-            <div v-if="fixedStudent" class="sw-modal__subtitle">{{ fixedStudent.name }}</div>
-          </div>
+          <h2 class="sw-modal__title">Registrar pago</h2>
         </div>
       </header>
 
@@ -75,7 +72,7 @@
               type="submit"
               color="primary"
               class="sw-btn full-width"
-              :label="submitLabel"
+              label="Registrar pago"
               :disable="!selected"
               :loading="saving"
             />
@@ -94,7 +91,6 @@ import MoneyField from 'src/components/MoneyField.vue';
 import StudentPickerField from 'src/components/StudentPickerField.vue';
 import { StudentDoc } from 'src/models/Student';
 import { useStudentsStore } from 'src/stores/students-store';
-import { formatMoney } from 'src/utils/money';
 import { coverageAfterPayment, dueLabel } from 'src/utils/subscription';
 
 // Se abre con $q.dialog({ component: RegisterPaymentDialog }):
@@ -139,12 +135,6 @@ watch(
     studentError.value = '';
   },
   { immediate: true }
-);
-
-const submitLabel = computed(() =>
-  selected.value && typeof form.amount === 'number'
-    ? `Registrar pago · ${formatMoney(form.amount)}`
-    : 'Registrar pago'
 );
 
 const saving = ref(false);
