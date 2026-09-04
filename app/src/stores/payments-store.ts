@@ -38,9 +38,15 @@ export const usePaymentsStore = defineStore('payments', () => {
   const collected = computed(() =>
     payments.value.reduce((sum, p) => sum + p.amount, 0)
   );
-  const poolCost = computed(() =>
+  // Piscina del mes = pagos manuales (arriendo, mantenimiento…) + lo que
+  // se paga a la piscina por cada mensualidad cobrada (snapshot del pago).
+  const poolManualCost = computed(() =>
     poolPayments.value.reduce((sum, p) => sum + p.amount, 0)
   );
+  const poolStudentCost = computed(() =>
+    payments.value.reduce((sum, p) => sum + p.poolFee, 0)
+  );
+  const poolCost = computed(() => poolManualCost.value + poolStudentCost.value);
   const net = computed(() => collected.value - poolCost.value);
 
   const sortedPoolPayments = computed(() =>
@@ -71,6 +77,8 @@ export const usePaymentsStore = defineStore('payments', () => {
     poolPayments: sortedPoolPayments,
     loading: computed(() => loadingPayments.value || loadingPool.value),
     collected,
+    poolManualCost,
+    poolStudentCost,
     poolCost,
     net,
     addPoolPayment,

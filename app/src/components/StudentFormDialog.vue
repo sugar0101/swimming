@@ -117,6 +117,27 @@
                   />
                 </div>
 
+                <div class="sw-field student-form__span-2">
+                  <label class="sw-overline sw-overline--plain sw-field__label" for="student-pool">
+                    Valor piscina
+                  </label>
+                  <q-input
+                    for="student-pool"
+                    v-model.number="form.poolFee"
+                    borderless
+                    type="number"
+                    inputmode="numeric"
+                    prefix="$"
+                    placeholder="0"
+                    :rules="[(v) => (typeof v === 'number' && v >= 0) || 'Escribe el valor']"
+                    hide-bottom-space
+                  />
+                  <div class="student-form__hint">
+                    Lo que se paga a la piscina por este alumno cada mes. Se descuenta
+                    del neto en la caja.
+                  </div>
+                </div>
+
                 <!-- Al editar, el vencimiento se puede corregir a mano. -->
                 <div v-if="isEdit" class="student-form__span-2">
                   <date-field
@@ -218,6 +239,7 @@ const form = reactive<StudentInput>({
   birthDate: props.student?.birthDate ?? '',
   startDate: props.student?.startDate ?? todayIso(),
   monthlyFee: props.student?.monthlyFee ?? 170000,
+  poolFee: props.student?.poolFee ?? 0,
   paid: true,
 });
 const paidThrough = ref(props.student?.paidThrough ?? '');
@@ -249,6 +271,7 @@ const submit = async () => {
         birthDate: form.birthDate,
         startDate: form.startDate,
         monthlyFee: form.monthlyFee,
+        poolFee: form.poolFee,
         paidThrough: paidThrough.value,
       });
       $q.notify({ message: 'Cambios guardados', color: 'positive' });

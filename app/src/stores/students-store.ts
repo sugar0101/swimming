@@ -58,6 +58,7 @@ export const useStudentsStore = defineStore('students', () => {
       birthDate: input.birthDate,
       startDate: input.startDate,
       monthlyFee: input.monthlyFee,
+      poolFee: input.poolFee,
       paidThrough,
       active: true,
       createdAt: serverTimestamp(),
@@ -75,6 +76,7 @@ export const useStudentsStore = defineStore('students', () => {
         date: todayIso(),
         month: toIsoMonth(new Date()),
         coversUntil: paidThrough,
+        poolFee: input.poolFee,
         createdAt: serverTimestamp(),
       });
     }
@@ -89,6 +91,7 @@ export const useStudentsStore = defineStore('students', () => {
       document: input.document.trim(),
       birthDate: input.birthDate,
       monthlyFee: input.monthlyFee,
+      poolFee: input.poolFee,
       startDate: input.startDate,
       paidThrough: input.paidThrough,
       updatedAt: serverTimestamp(),
@@ -114,6 +117,7 @@ export const useStudentsStore = defineStore('students', () => {
       date: today,
       month: toIsoMonth(new Date()),
       coversUntil,
+      poolFee: student.poolFee,
       createdAt: serverTimestamp(),
     });
     await batch.commit();

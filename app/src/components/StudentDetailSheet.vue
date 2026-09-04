@@ -41,6 +41,10 @@
               <dd>{{ fee }}</dd>
             </div>
             <div class="detail__fact">
+              <dt class="sw-overline sw-overline--plain">Piscina</dt>
+              <dd>{{ poolFeeLabel }}</dd>
+            </div>
+            <div class="detail__fact">
               <dt class="sw-overline sw-overline--plain">Pagado hasta</dt>
               <dd>{{ paidThrough }}</dd>
             </div>
@@ -154,6 +158,9 @@ const status = computed(() =>
 const statusLabel = computed(() => STATUS_LABEL[status.value]);
 const due = computed(() => (student.value ? dueLabel(student.value.paidThrough) : ''));
 const fee = computed(() => formatMoney(student.value?.monthlyFee ?? 0));
+const poolFeeLabel = computed(() =>
+  student.value?.poolFee ? `−${formatMoney(student.value.poolFee)}` : '—'
+);
 const paidThrough = computed(() =>
   student.value ? formatShortDate(student.value.paidThrough, true) : ''
 );

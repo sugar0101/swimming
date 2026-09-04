@@ -52,9 +52,19 @@
                 class="cash__line-dot"
                 style="background: var(--sw-warning)"
               />
-              <span class="cash__line-label">Piscina</span>
+              <span class="cash__line-label">Piscina por alumnos</span>
               <span class="cash__line-value"
-                >−{{ formatMoney(paymentsStore.poolCost) }}</span
+                >−{{ formatMoney(paymentsStore.poolStudentCost) }}</span
+              >
+            </div>
+            <div class="cash__line">
+              <span
+                class="cash__line-dot"
+                style="background: var(--sw-warning)"
+              />
+              <span class="cash__line-label">Pagos de piscina</span>
+              <span class="cash__line-value"
+                >−{{ formatMoney(paymentsStore.poolManualCost) }}</span
               >
             </div>
           </section>
@@ -127,7 +137,10 @@
                 <div class="cash__row-concept">{{ payment.studentName }}</div>
                 <div class="cash__row-date">
                   {{ formatShortDate(payment.date) }} · cubre hasta
-                  {{ formatShortDate(payment.coversUntil) }}
+                  {{ formatShortDate(payment.coversUntil)
+                  }}<template v-if="payment.poolFee > 0">
+                    · piscina −{{ formatMoney(payment.poolFee) }}</template
+                  >
                 </div>
               </div>
               <div class="cash__row-amount cash__row-amount--in">

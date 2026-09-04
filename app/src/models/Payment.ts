@@ -12,6 +12,9 @@ export const PaymentSchema = z.object({
   month: z.string().regex(/^\d{4}-\d{2}$/),
   // Hasta qué fecha deja pagada la mensualidad.
   coversUntil: IsoDateSchema,
+  // Costo de piscina del alumno en el momento del pago (snapshot): las
+  // analíticas del mes lo restan del neto.
+  poolFee: z.number().nonnegative().default(0),
   createdAt: z.unknown().optional(),
 });
 

@@ -15,6 +15,9 @@ export const StudentSchema = z.object({
   birthDate: IsoDateSchema.or(z.literal('')).default(''),
   startDate: IsoDateSchema,
   monthlyFee: z.number().nonnegative(),
+  // Lo que la escuela paga a la piscina por este alumno cada mes: se
+  // descuenta del neto en las analíticas.
+  poolFee: z.number().nonnegative().default(0),
   // Hasta qué fecha está pagada la mensualidad. Es la fecha de vencimiento.
   paidThrough: IsoDateSchema,
   active: z.boolean().default(true),
@@ -32,6 +35,7 @@ export type StudentInput = {
   birthDate: string;
   startDate: string;
   monthlyFee: number;
+  poolFee: number;
   paid: boolean;
 };
 
