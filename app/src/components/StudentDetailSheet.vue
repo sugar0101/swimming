@@ -152,6 +152,52 @@
             </button>
           </section>
 
+          <!-- Historial de pagos del alumno (todos los meses). -->
+          <section class="detail__payments">
+            <div class="detail__payments-head">
+              <h3 class="detail__payments-title sw-heading">Pagos</h3>
+            </div>
+
+            <div v-if="paymentsSummary" class="detail__payments-summary">
+              {{ paymentsSummary }}
+            </div>
+
+            <div v-if="sortedPayments.length === 0" class="detail__payments-empty">
+              Aún no hay pagos registrados de este alumno.
+            </div>
+
+            <div
+              v-for="payment in sortedPayments"
+              :key="payment._id"
+              class="detail__payment"
+            >
+              <div class="detail__payment-body">
+                <div class="detail__payment-date">
+                  {{ formatShortDate(payment.date, true) }}
+                </div>
+                <div class="detail__payment-meta">
+                  cubre hasta {{ formatShortDate(payment.coversUntil)
+                  }}<template v-if="payment.poolFee > 0">
+                    · piscina −{{ formatMoney(payment.poolFee) }}</template
+                  >
+                </div>
+              </div>
+              <div class="detail__payment-amount">
+                {{ formatMoney(payment.amount) }}
+              </div>
+              <q-btn
+                flat
+                round
+                dense
+                size="sm"
+                icon="sym_o_delete"
+                class="detail__payment-delete"
+                aria-label="Eliminar pago"
+                @click="confirmRemovePayment(payment)"
+              />
+            </div>
+          </section>
+
           <div class="detail__links">
             <button type="button" class="detail__link" @click="act('edit')">
               Editar datos
@@ -179,6 +225,7 @@ import { useCollection } from 'src/composables/firebase';
 import SessionDialog from 'src/components/SessionDialog.vue';
 import { StudentDoc } from 'src/models/Student';
 import { SessionDoc, SessionSchema } from 'src/models/Session';
+import { PaymentDoc, PaymentSchema } from 'src/models/Payment';
 import { useStudentsStore } from 'src/stores/students-store';
 import { formatMoney } from 'src/utils/money';
 import { currentMonthIso, formatShortDate } from 'src/utils/dates';
@@ -260,6 +307,35 @@ const openSessionDialog = (session?: SessionDoc) => {
       studentName: student.value.name,
       session: session ?? null,
     },
+  });
+};
+
+// Historial de pagos del alumno (sin orderBy: se ordena en cliente para
+// no requerir índice compuesto).
+const paymentsQuery = ref(
+  query(collection(db, 'payments'), where('studentId', '==', props.studentId))
+);
+const { documents: studentPayments } = useCollection(paymentsQuery, PaymentSchema);
+
+const sortedPayments = computed(() =>
+  [...studentPayments.value].sort((a, b) => (a.date < b.date ? 1 : -1))
+);
+
+const paymentsSummary = computed(() => {
+  const total = studentPayments.value.length;
+  if (total === 0) return '';
+  const sum = studentPayments.value.reduce((acc, p) => acc + p.amount, 0);
+  return `${total} ${total === 1 ? 'pago' : 'pagos'} · ${formatMoney(sum)} en total`;
+});
+
+const confirmRemovePayment = (payment: PaymentDoc) => {
+  $q.dialog({
+    title: 'Eliminar pago',
+    message: `Se elimina el pago del ${formatShortDate(payment.date, true)} y la cobertura retrocede un mes.`,
+    ok: { label: 'Eliminar', color: 'negative', unelevated: true, noCaps: true },
+    cancel: { label: 'Cancelar', flat: true, noCaps: true },
+  }).onOk(async () => {
+    await studentsStore.undoPayment(payment);
   });
 };
 
@@ -527,6 +603,76 @@ const whatsapp = computed(() => {
 }
 
 .detail__session-delete {
+  color: var(--sw-text-3);
+}
+
+.detail__payments {
+  margin-top: 28px;
+}
+
+.detail__payments-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.detail__payments-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.detail__payments-summary {
+  margin-top: 4px;
+  font-size: 0.8125rem;
+  color: var(--sw-text-2);
+}
+
+.detail__payments-empty {
+  padding: 14px 0;
+  font-size: 0.875rem;
+  color: var(--sw-text-2);
+}
+
+// Cada pago es una tarjeta con borde gris suave.
+.detail__payment {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--sw-border);
+  border-radius: var(--sw-radius-md);
+  background: var(--sw-bg);
+  box-shadow: 0 1px 2px rgba(17, 24, 39, 0.04);
+}
+
+.detail__payment-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.detail__payment-date {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.detail__payment-meta {
+  margin-top: 2px;
+  font-size: 0.8125rem;
+  color: var(--sw-text-2);
+}
+
+.detail__payment-amount {
+  font-family: var(--sw-font-heading);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #15803d;
+  white-space: nowrap;
+}
+
+.detail__payment-delete {
   color: var(--sw-text-3);
 }
 
