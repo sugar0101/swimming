@@ -1,130 +1,200 @@
 <template>
   <q-dialog
     v-model="open"
-    position="bottom"
-    :maximized="false"
+    maximized
     transition-show="slide-up"
     transition-hide="slide-down"
+    :transition-duration="380"
   >
-    <q-card class="sw-sheet">
-      <div class="sw-sheet__grip" />
+    <q-card class="student-form">
+      <!-- Barra superior fija: cerrar + título. -->
+      <header class="student-form__bar">
+        <div class="student-form__bar-inner">
+          <q-btn flat round dense icon="sym_o_close" aria-label="Cerrar" v-close-popup />
+          <h2 class="student-form__title sw-heading">
+            {{ isEdit ? 'Editar alumno' : 'Nuevo alumno' }}
+          </h2>
+        </div>
+      </header>
 
-      <div class="student-form__header">
-        <h2 class="student-form__title sw-heading">
-          {{ isEdit ? 'Editar alumno' : 'Nuevo alumno' }}
-        </h2>
-        <q-btn flat round dense icon="sym_o_close" aria-label="Cerrar" v-close-popup />
-      </div>
+      <q-form class="student-form__form" @submit.prevent="submit">
+        <div class="student-form__scroll">
+          <div class="student-form__inner">
+            <section class="student-form__section">
+              <span class="sw-overline">Datos del alumno</span>
 
-      <q-form class="student-form" @submit.prevent="submit">
-        <div class="student-form__grid">
-          <div class="sw-field">
-            <label class="sw-overline sw-overline--plain sw-field__label" for="student-name">
-              Nombre del alumno
-            </label>
-            <q-input
-              for="student-name"
-              v-model="form.name"
-              borderless
-              placeholder="Ej: Yesicca Rojas"
-              autocomplete="name"
-              :rules="[(v) => !!v?.trim() || 'Escribe el nombre']"
-              hide-bottom-space
-            />
-          </div>
+              <div class="student-form__grid">
+                <div class="sw-field student-form__span-2">
+                  <label class="sw-overline sw-overline--plain sw-field__label" for="student-name">
+                    Nombre completo
+                  </label>
+                  <q-input
+                    for="student-name"
+                    v-model="form.name"
+                    borderless
+                    placeholder="Ej: Yesicca Rojas"
+                    autocomplete="name"
+                    :rules="[(v) => !!v?.trim() || 'Escribe el nombre']"
+                    hide-bottom-space
+                  />
+                </div>
 
-          <div class="sw-field">
-            <label class="sw-overline sw-overline--plain sw-field__label" for="student-phone">
-              Teléfono WhatsApp
-            </label>
-            <q-input
-              for="student-phone"
-              v-model="form.phone"
-              borderless
-              type="tel"
-              inputmode="tel"
-              placeholder="3025916027"
-              autocomplete="tel"
-              hide-bottom-space
-            />
-          </div>
+                <div class="sw-field">
+                  <label class="sw-overline sw-overline--plain sw-field__label" for="student-document">
+                    Documento de identidad
+                  </label>
+                  <q-input
+                    for="student-document"
+                    v-model="form.document"
+                    borderless
+                    inputmode="numeric"
+                    placeholder="Ej: 1023456789"
+                    hide-bottom-space
+                  />
+                </div>
 
-          <div class="sw-field">
-            <label class="sw-overline sw-overline--plain sw-field__label" for="student-start">
-              Fecha de inicio
-            </label>
-            <q-input
-              for="student-start"
-              v-model="form.startDate"
-              borderless
-              type="date"
-              :rules="[(v) => !!v || 'Elige la fecha']"
-              hide-bottom-space
-            />
-          </div>
+                <div class="sw-field">
+                  <label class="sw-overline sw-overline--plain sw-field__label" for="student-birth">
+                    Fecha de nacimiento
+                  </label>
+                  <q-input
+                    for="student-birth"
+                    v-model="form.birthDate"
+                    borderless
+                    type="date"
+                    :max="today"
+                    hide-bottom-space
+                  />
+                  <div v-if="ageLabel" class="student-form__hint">{{ ageLabel }}</div>
+                </div>
 
-          <div class="sw-field">
-            <label class="sw-overline sw-overline--plain sw-field__label" for="student-fee">
-              Valor mensualidad
-            </label>
-            <q-input
-              for="student-fee"
-              v-model.number="form.monthlyFee"
-              borderless
-              type="number"
-              inputmode="numeric"
-              prefix="$"
-              placeholder="170000"
-              :rules="[(v) => (typeof v === 'number' && v >= 0) || 'Escribe el valor']"
-              hide-bottom-space
-            />
+                <div class="sw-field student-form__span-2">
+                  <label class="sw-overline sw-overline--plain sw-field__label" for="student-phone">
+                    Teléfono WhatsApp
+                  </label>
+                  <q-input
+                    for="student-phone"
+                    v-model="form.phone"
+                    borderless
+                    type="tel"
+                    inputmode="tel"
+                    placeholder="3025916027"
+                    autocomplete="tel"
+                    hide-bottom-space
+                  />
+                </div>
+              </div>
+            </section>
+
+            <section class="student-form__section">
+              <span class="sw-overline">Mensualidad</span>
+
+              <div class="student-form__grid">
+                <div class="sw-field">
+                  <label class="sw-overline sw-overline--plain sw-field__label" for="student-start">
+                    Fecha de inicio
+                  </label>
+                  <q-input
+                    for="student-start"
+                    v-model="form.startDate"
+                    borderless
+                    type="date"
+                    :rules="[(v) => !!v || 'Elige la fecha']"
+                    hide-bottom-space
+                  />
+                  <div class="student-form__hint">
+                    La mensualidad siempre vence este día del mes.
+                  </div>
+                </div>
+
+                <div class="sw-field">
+                  <label class="sw-overline sw-overline--plain sw-field__label" for="student-fee">
+                    Valor mensualidad
+                  </label>
+                  <q-input
+                    for="student-fee"
+                    v-model.number="form.monthlyFee"
+                    borderless
+                    type="number"
+                    inputmode="numeric"
+                    prefix="$"
+                    placeholder="170000"
+                    :rules="[(v) => (typeof v === 'number' && v >= 0) || 'Escribe el valor']"
+                    hide-bottom-space
+                  />
+                </div>
+
+                <!-- Al editar, el vencimiento se puede corregir a mano. -->
+                <div v-if="isEdit" class="sw-field student-form__span-2">
+                  <label class="sw-overline sw-overline--plain sw-field__label" for="student-paid-through">
+                    Pagado hasta
+                  </label>
+                  <q-input
+                    for="student-paid-through"
+                    v-model="paidThrough"
+                    borderless
+                    type="date"
+                    :rules="[(v) => !!v || 'Elige la fecha']"
+                    hide-bottom-space
+                  />
+                  <div class="student-form__hint">{{ paidThroughHint }}</div>
+                </div>
+              </div>
+
+              <div v-if="!isEdit" class="student-form__status">
+                <span class="sw-overline sw-overline--plain sw-field__label">
+                  Estado de la mensualidad
+                </span>
+                <div class="student-form__chips" role="radiogroup" aria-label="Estado de la mensualidad">
+                  <button
+                    type="button"
+                    class="student-form__chip"
+                    :class="{ 'student-form__chip--active': form.paid }"
+                    role="radio"
+                    :aria-checked="form.paid"
+                    @click="form.paid = true"
+                  >
+                    <q-icon name="sym_o_check" size="16px" />
+                    Ya pagó
+                  </button>
+                  <button
+                    type="button"
+                    class="student-form__chip"
+                    :class="{ 'student-form__chip--active': !form.paid }"
+                    role="radio"
+                    :aria-checked="!form.paid"
+                    @click="form.paid = false"
+                  >
+                    <q-icon name="sym_o_schedule" size="16px" />
+                    Debe
+                  </button>
+                </div>
+                <div class="student-form__hint">
+                  {{
+                    form.paid
+                      ? `Queda al día hasta el ${coverageLabel}.`
+                      : 'La mensualidad vence desde la fecha de inicio.'
+                  }}
+                </div>
+              </div>
+            </section>
           </div>
         </div>
 
-        <div v-if="!isEdit" class="student-form__status">
-          <span class="sw-overline sw-overline--plain sw-field__label">Estado de la mensualidad</span>
-          <div class="student-form__chips" role="radiogroup" aria-label="Estado de la mensualidad">
-            <button
-              type="button"
-              class="student-form__chip"
-              :class="{ 'student-form__chip--active': form.paid }"
-              role="radio"
-              :aria-checked="form.paid"
-              @click="form.paid = true"
-            >
-              <q-icon name="sym_o_check" size="16px" />
-              Ya pagó
-            </button>
-            <button
-              type="button"
-              class="student-form__chip"
-              :class="{ 'student-form__chip--active': !form.paid }"
-              role="radio"
-              :aria-checked="!form.paid"
-              @click="form.paid = false"
-            >
-              <q-icon name="sym_o_schedule" size="16px" />
-              Debe
-            </button>
+        <!-- Botón fijo abajo, siempre a la vista. -->
+        <footer class="student-form__footer">
+          <div class="student-form__inner">
+            <q-btn
+              unelevated
+              no-caps
+              type="submit"
+              color="primary"
+              class="sw-btn full-width"
+              :label="isEdit ? 'Guardar cambios' : 'Agregar alumno'"
+              :loading="saving"
+            />
           </div>
-          <div class="student-form__hint">
-            {{
-              form.paid
-                ? `Queda al día hasta el ${coverageLabel}.`
-                : 'La mensualidad vence desde la fecha de inicio.'
-            }}
-          </div>
-        </div>
-
-        <q-btn
-          unelevated
-          no-caps
-          type="submit"
-          color="primary"
-          class="sw-btn full-width q-mt-md"
-          :label="isEdit ? 'Guardar cambios' : 'Agregar alumno'"
-          :loading="saving"
-        />
+        </footer>
       </q-form>
     </q-card>
   </q-dialog>
@@ -135,7 +205,8 @@ import { computed, reactive, ref, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { StudentDoc, StudentInput } from 'src/models/Student';
 import { useStudentsStore } from 'src/stores/students-store';
-import { addMonthsIso, formatShortDate, todayIso } from 'src/utils/dates';
+import { addMonthsIso, ageFrom, formatShortDate, todayIso } from 'src/utils/dates';
+import { dueLabel, getStatus, STATUS_LABEL } from 'src/utils/subscription';
 
 const props = defineProps<{
   modelValue: boolean;
@@ -153,16 +224,20 @@ const open = computed({
 });
 
 const isEdit = computed(() => !!props.student);
+const today = todayIso();
 
 const emptyForm = (): StudentInput => ({
   name: '',
   phone: '',
+  document: '',
+  birthDate: '',
   startDate: todayIso(),
   monthlyFee: 170000,
   paid: true,
 });
 
 const form = reactive<StudentInput>(emptyForm());
+const paidThrough = ref('');
 const saving = ref(false);
 
 watch(
@@ -171,24 +246,47 @@ watch(
     if (!value) return;
     const source = props.student;
     Object.assign(form, emptyForm());
+    paidThrough.value = '';
     if (source) {
       form.name = source.name;
       form.phone = source.phone;
+      form.document = source.document;
+      form.birthDate = source.birthDate;
       form.startDate = source.startDate;
       form.monthlyFee = source.monthlyFee;
+      paidThrough.value = source.paidThrough;
     }
   }
 );
+
+const ageLabel = computed(() => {
+  const age = ageFrom(form.birthDate);
+  return age === null ? '' : `${age} ${age === 1 ? 'año' : 'años'}.`;
+});
 
 const coverageLabel = computed(() =>
   form.startDate ? formatShortDate(addMonthsIso(form.startDate, 1), true) : ''
 );
 
+const paidThroughHint = computed(() => {
+  if (!paidThrough.value) return '';
+  const status = getStatus(paidThrough.value);
+  return `Con esta fecha queda: ${STATUS_LABEL[status]} · ${dueLabel(paidThrough.value).toLowerCase()}.`;
+});
+
 const submit = async () => {
   saving.value = true;
   try {
     if (props.student) {
-      await studentsStore.updateStudent(props.student._id, form);
+      await studentsStore.updateStudent(props.student._id, {
+        name: form.name,
+        phone: form.phone,
+        document: form.document,
+        birthDate: form.birthDate,
+        startDate: form.startDate,
+        monthlyFee: form.monthlyFee,
+        paidThrough: paidThrough.value,
+      });
       $q.notify({ message: 'Cambios guardados', color: 'positive' });
     } else {
       await studentsStore.addStudent({ ...form });
@@ -208,33 +306,80 @@ const submit = async () => {
 </script>
 
 <style scoped lang="scss">
-.student-form__header {
+.student-form {
+  display: flex;
+  flex-direction: column;
+  background: var(--sw-bg);
+}
+
+.student-form__bar {
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--sw-border);
+  padding-top: env(safe-area-inset-top);
+}
+
+.student-form__bar-inner {
+  max-width: 640px;
+  margin: 0 auto;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 14px;
+  gap: 10px;
+  padding: 12px 16px;
 }
 
 .student-form__title {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 700;
+}
+
+.student-form__form {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.student-form__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.student-form__inner {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 20px 16px;
+}
+
+.student-form__section {
+  & + & {
+    margin-top: 28px;
+  }
+
+  > .sw-overline {
+    margin-bottom: 12px;
+  }
 }
 
 .student-form__grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 12px;
+  gap: 14px;
 }
 
 @media (min-width: 600px) {
   .student-form__grid {
     grid-template-columns: 1fr 1fr;
   }
+
+  .student-form__span-2 {
+    grid-column: span 2;
+  }
 }
 
 .student-form__status {
-  margin-top: 14px;
+  margin-top: 16px;
 }
 
 .student-form__chips {
@@ -274,5 +419,16 @@ const submit = async () => {
   margin-top: 8px;
   font-size: 0.8125rem;
   color: var(--sw-text-2);
+}
+
+.student-form__footer {
+  flex-shrink: 0;
+  border-top: 1px solid var(--sw-border);
+  background: var(--sw-bg);
+  padding-bottom: env(safe-area-inset-bottom);
+
+  .student-form__inner {
+    padding: 12px 16px;
+  }
 }
 </style>

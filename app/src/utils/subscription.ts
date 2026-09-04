@@ -1,4 +1,5 @@
 import { differenceInCalendarDays, parseISO, subMonths } from 'date-fns';
+import { nextCycleIso } from './dates';
 
 export type SubscriptionStatus = 'al_dia' | 'vence_pronto' | 'debe';
 
@@ -44,6 +45,19 @@ export function periodProgress(paidThrough: string, today = new Date()): number 
   if (total <= 0) return 1;
   const elapsed = differenceInCalendarDays(today, start);
   return Math.min(1, Math.max(0, elapsed / total));
+}
+
+// Hasta qué fecha queda cubierto el alumno al pagar una mensualidad: el
+// siguiente ciclo anclado a su fecha de inicio, nunca "un mes desde hoy".
+export function coverageAfterPayment(student: {
+  startDate: string;
+  paidThrough: string;
+}): string {
+  const base =
+    student.paidThrough < student.startDate
+      ? student.startDate
+      : student.paidThrough;
+  return nextCycleIso(student.startDate, base);
 }
 
 // Mensaje de recordatorio para WhatsApp.

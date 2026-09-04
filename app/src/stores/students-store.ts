@@ -12,10 +12,10 @@ import {
 } from 'firebase/firestore';
 import { db } from 'src/boot/firebase';
 import { useCollection } from 'src/composables/firebase';
-import { StudentSchema, StudentDoc, StudentInput } from 'src/models/Student';
+import { StudentSchema, StudentDoc, StudentInput, StudentUpdate } from 'src/models/Student';
 import { PaymentDoc } from 'src/models/Payment';
-import { addMonthsIso, todayIso, toIsoMonth } from 'src/utils/dates';
-import { getStatus } from 'src/utils/subscription';
+import { addMonthsIso, prevCycleIso, todayIso, toIsoMonth } from 'src/utils/dates';
+import { coverageAfterPayment, getStatus } from 'src/utils/subscription';
 
 export const useStudentsStore = defineStore('students', () => {
   const studentsQuery = ref(
@@ -54,6 +54,8 @@ export const useStudentsStore = defineStore('students', () => {
     batch.set(studentRef, {
       name: input.name.trim(),
       phone: input.phone.trim(),
+      document: input.document.trim(),
+      birthDate: input.birthDate,
       startDate: input.startDate,
       monthlyFee: input.monthlyFee,
       paidThrough,
@@ -80,26 +82,25 @@ export const useStudentsStore = defineStore('students', () => {
     await batch.commit();
   };
 
-  const updateStudent = async (
-    id: string,
-    input: Pick<StudentInput, 'name' | 'phone' | 'monthlyFee' | 'startDate'>
-  ) => {
+  const updateStudent = async (id: string, input: StudentUpdate) => {
     await updateDoc(doc(db, `students/${id}`), {
       name: input.name.trim(),
       phone: input.phone.trim(),
+      document: input.document.trim(),
+      birthDate: input.birthDate,
       monthlyFee: input.monthlyFee,
       startDate: input.startDate,
+      paidThrough: input.paidThrough,
       updatedAt: serverTimestamp(),
     });
   };
 
-  // Registra el pago de una mensualidad: extiende un mes la cobertura
-  // (desde el vencimiento, o desde hoy si ya venció hace tiempo) y crea el
-  // doc de pago.
+  // Registra el pago de una mensualidad: la cobertura avanza al siguiente
+  // ciclo anclado a la fecha de inicio (pagar tarde no corre el día de
+  // corte del alumno) y crea el doc de pago.
   const registerPayment = async (student: StudentDoc) => {
     const today = todayIso();
-    const base = student.paidThrough < today ? today : student.paidThrough;
-    const coversUntil = addMonthsIso(base, 1);
+    const coversUntil = coverageAfterPayment(student);
 
     const batch = writeBatch(db);
     batch.update(doc(db, `students/${student._id}`), {
@@ -118,9 +119,9 @@ export const useStudentsStore = defineStore('students', () => {
     await batch.commit();
   };
 
-  // Deshace un cobro registrado por error: elimina el doc de pago y le
-  // resta ese mes de cobertura al alumno (si el alumno ya no existe, solo
-  // se elimina el pago).
+  // Deshace un cobro registrado por error: elimina el doc de pago y
+  // retrocede la cobertura al ciclo anterior (si el alumno ya no existe,
+  // solo se elimina el pago).
   const undoPayment = async (payment: PaymentDoc) => {
     const batch = writeBatch(db);
     batch.delete(doc(db, `payments/${payment._id}`));
@@ -128,7 +129,7 @@ export const useStudentsStore = defineStore('students', () => {
     const student = students.value.find((s) => s._id === payment.studentId);
     if (student) {
       batch.update(doc(db, `students/${student._id}`), {
-        paidThrough: addMonthsIso(student.paidThrough, -1),
+        paidThrough: prevCycleIso(student.startDate, student.paidThrough),
         updatedAt: serverTimestamp(),
       });
     }

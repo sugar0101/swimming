@@ -4,6 +4,7 @@
     position="bottom"
     transition-show="slide-up"
     transition-hide="slide-down"
+    :transition-duration="380"
   >
     <q-card v-if="student" class="sw-sheet detail">
       <div class="sw-sheet__grip" />
@@ -35,6 +36,14 @@
         <div class="detail__fact">
           <dt class="sw-overline sw-overline--plain">WhatsApp</dt>
           <dd>{{ student.phone || '—' }}</dd>
+        </div>
+        <div class="detail__fact">
+          <dt class="sw-overline sw-overline--plain">Documento</dt>
+          <dd>{{ student.document || '—' }}</dd>
+        </div>
+        <div class="detail__fact">
+          <dt class="sw-overline sw-overline--plain">Edad</dt>
+          <dd>{{ ageLabel }}</dd>
         </div>
       </dl>
 
@@ -77,7 +86,7 @@
 import { computed } from 'vue';
 import { StudentDoc } from 'src/models/Student';
 import { formatMoney } from 'src/utils/money';
-import { formatShortDate } from 'src/utils/dates';
+import { ageFrom, formatShortDate } from 'src/utils/dates';
 import {
   STATUS_LABEL,
   dueLabel,
@@ -113,6 +122,11 @@ const paidThrough = computed(() =>
 const startDate = computed(() =>
   props.student ? formatShortDate(props.student.startDate, true) : ''
 );
+
+const ageLabel = computed(() => {
+  const age = ageFrom(props.student?.birthDate ?? '');
+  return age === null ? '—' : `${age} ${age === 1 ? 'año' : 'años'}`;
+});
 
 const initials = computed(() =>
   (props.student?.name ?? '')

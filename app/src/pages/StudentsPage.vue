@@ -192,8 +192,8 @@ import { useStudentsStore } from 'src/stores/students-store';
 import { usePaymentsStore } from 'src/stores/payments-store';
 import { StudentDoc } from 'src/models/Student';
 import { formatMoney } from 'src/utils/money';
-import { formatMonthName } from 'src/utils/dates';
-import { getStatus, SubscriptionStatus } from 'src/utils/subscription';
+import { formatMonthName, formatShortDate } from 'src/utils/dates';
+import { coverageAfterPayment, getStatus, SubscriptionStatus } from 'src/utils/subscription';
 
 type FilterKey = 'todos' | SubscriptionStatus;
 
@@ -268,9 +268,10 @@ const openDetail = (student: StudentDoc) => {
 
 const confirmPayment = (student: StudentDoc) => {
   detailDialog.value = false;
+  const coversUntil = formatShortDate(coverageAfterPayment(student), true);
   $q.dialog({
     title: 'Registrar pago',
-    message: `${student.name} paga ${formatMoney(student.monthlyFee)} de la mensualidad.`,
+    message: `${student.name} paga ${formatMoney(student.monthlyFee)} de la mensualidad y queda al día hasta el ${coversUntil}.`,
     ok: { label: 'Registrar', color: 'primary', unelevated: true, noCaps: true },
     cancel: { label: 'Cancelar', flat: true, noCaps: true },
   }).onOk(async () => {

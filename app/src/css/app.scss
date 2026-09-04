@@ -32,6 +32,8 @@
 
   --sw-shadow-sheet: 0 -8px 24px rgba(17, 24, 39, 0.1);
   --sw-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  // Muelle suave (leve rebote) para la entrada de las hojas.
+  --sw-ease-spring: cubic-bezier(0.34, 1.16, 0.3, 1);
 }
 
 html,
@@ -234,6 +236,55 @@ h3,
 .sw-divider {
   height: 1px;
   background: var(--sw-border);
+}
+
+// Diálogos: telón azul profundo con desenfoque; la hoja entra con muelle
+// suave y sale rápido. La duración la fija cada q-dialog con la prop
+// `transition-duration` (Quasar la inyecta inline); aquí solo el easing.
+.q-dialog__backdrop {
+  background: rgba(10, 37, 56, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.q-dialog .q-transition--slide-up-enter-active {
+  --q-transition-easing: var(--sw-ease-spring);
+}
+
+.q-dialog .q-transition--slide-down-leave-active {
+  --q-transition-easing: cubic-bezier(0.4, 0, 0.7, 1);
+}
+
+// Diálogos de confirmación ($q.dialog): mismos radios, tipografía y
+// botones que el resto de la app.
+.q-dialog-plugin {
+  border-radius: var(--sw-radius-lg) !important;
+  padding: 6px 4px;
+  box-shadow: 0 18px 48px rgba(17, 24, 39, 0.18);
+
+  .q-dialog__title {
+    font-family: var(--sw-font-heading);
+    font-size: 1.125rem;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+  }
+
+  .q-dialog__message {
+    color: var(--sw-text-2);
+    font-size: 0.9375rem;
+    line-height: 1.55;
+  }
+
+  .q-card__actions {
+    padding: 8px 16px 12px;
+
+    .q-btn {
+      border-radius: 10px;
+      min-height: 40px;
+      padding: 0 16px;
+      font-weight: 600;
+    }
+  }
 }
 
 input[type='number'] {

@@ -4,6 +4,7 @@
     position="bottom"
     transition-show="slide-up"
     transition-hide="slide-down"
+    :transition-duration="380"
   >
     <q-card class="sw-sheet">
       <div class="sw-sheet__grip" />
