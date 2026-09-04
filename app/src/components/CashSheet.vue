@@ -1,10 +1,11 @@
 <template>
   <q-dialog
-    v-model="open"
+    ref="dialogRef"
     position="bottom"
     transition-show="slide-up"
     transition-hide="slide-down"
     :transition-duration="380"
+    @hide="onDialogHide"
   >
     <q-card class="sw-sheet cash">
       <div class="sw-sheet__grip" />
@@ -46,7 +47,7 @@
               class="sw-chip-btn sw-chip-btn--primary"
               icon="sym_o_add"
               label="Agregar"
-              @click="poolDialog = true"
+              @click="openPoolDialog"
             />
           </div>
 
@@ -105,14 +106,12 @@
         </section>
       </div>
     </q-card>
-
-    <pool-payment-dialog v-model="poolDialog" />
   </q-dialog>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { useQuasar } from 'quasar';
+import { computed } from 'vue';
+import { useDialogPluginComponent, useQuasar } from 'quasar';
 import PoolPaymentDialog from 'src/components/PoolPaymentDialog.vue';
 import { usePaymentsStore } from 'src/stores/payments-store';
 import { useStudentsStore } from 'src/stores/students-store';
@@ -120,17 +119,13 @@ import { PaymentDoc } from 'src/models/Payment';
 import { formatMoney } from 'src/utils/money';
 import { formatMonthName, formatShortDate } from 'src/utils/dates';
 
-const props = defineProps<{ modelValue: boolean }>();
-const emit = defineEmits<{ (e: 'update:modelValue', value: boolean): void }>();
+// Se abre con $q.dialog({ component: CashSheet }).
+defineEmits([...useDialogPluginComponent.emits]);
+const { dialogRef, onDialogHide } = useDialogPluginComponent();
 
 const $q = useQuasar();
 const paymentsStore = usePaymentsStore();
 const studentsStore = useStudentsStore();
-
-const open = computed({
-  get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value),
-});
 
 const monthTitle = computed(() => {
   const name = formatMonthName(paymentsStore.month);
@@ -141,7 +136,9 @@ const sortedPayments = computed(() =>
   [...paymentsStore.payments].sort((a, b) => (a.date < b.date ? 1 : -1))
 );
 
-const poolDialog = ref(false);
+const openPoolDialog = () => {
+  $q.dialog({ component: PoolPaymentDialog });
+};
 
 const confirmRemovePool = (id: string) => {
   $q.dialog({

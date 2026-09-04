@@ -1,10 +1,11 @@
 <template>
   <q-dialog
-    v-model="open"
+    ref="dialogRef"
     position="bottom"
     transition-show="slide-up"
     transition-hide="slide-down"
     :transition-duration="380"
+    @hide="onDialogHide"
   >
     <q-card class="sw-sheet">
       <div class="sw-sheet__grip" />
@@ -77,41 +78,28 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from 'vue';
-import { useQuasar } from 'quasar';
+import { reactive, ref } from 'vue';
+import { useDialogPluginComponent, useQuasar } from 'quasar';
 import { usePaymentsStore } from 'src/stores/payments-store';
 import { todayIso } from 'src/utils/dates';
 
-const props = defineProps<{ modelValue: boolean }>();
-const emit = defineEmits<{ (e: 'update:modelValue', value: boolean): void }>();
+// Se abre con $q.dialog({ component: PoolPaymentDialog }): el componente se
+// monta fresco en cada apertura, así que el formulario nace limpio.
+defineEmits([...useDialogPluginComponent.emits]);
+const { dialogRef, onDialogHide, onDialogOK } = useDialogPluginComponent();
 
 const $q = useQuasar();
 const paymentsStore = usePaymentsStore();
 
-const open = computed({
-  get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value),
-});
-
 const form = reactive({ concept: '', amount: 70000, date: todayIso() });
 const saving = ref(false);
-
-watch(
-  () => props.modelValue,
-  (value) => {
-    if (!value) return;
-    form.concept = '';
-    form.amount = 70000;
-    form.date = todayIso();
-  }
-);
 
 const submit = async () => {
   saving.value = true;
   try {
     await paymentsStore.addPoolPayment({ ...form });
     $q.notify({ message: 'Pago de piscina agregado', color: 'positive' });
-    open.value = false;
+    onDialogOK();
   } catch (error) {
     console.error(error);
     $q.notify({

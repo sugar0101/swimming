@@ -1,10 +1,11 @@
 <template>
   <q-dialog
-    v-model="open"
+    ref="dialogRef"
     maximized
     transition-show="slide-up"
     transition-hide="slide-down"
     :transition-duration="380"
+    @hide="onDialogHide"
   >
     <q-card v-if="student" class="detail">
       <!-- Barra superior fija: cerrar + acciones de edición. -->
@@ -18,7 +19,7 @@
             dense
             icon="sym_o_edit"
             aria-label="Editar datos"
-            @click="$emit('edit', student)"
+            @click="act('edit')"
           />
         </div>
       </header>
@@ -69,7 +70,7 @@
               class="sw-btn full-width"
               icon="sym_o_payments"
               :label="`Registrar pago · ${fee}`"
-              @click="$emit('pay', student)"
+              @click="act('pay')"
             />
             <q-btn
               v-if="whatsapp"
@@ -85,13 +86,13 @@
           </div>
 
           <div class="detail__links">
-            <button type="button" class="detail__link" @click="$emit('edit', student)">
+            <button type="button" class="detail__link" @click="act('edit')">
               Editar datos
             </button>
             <button
               type="button"
               class="detail__link detail__link--danger"
-              @click="$emit('remove', student)"
+              @click="act('remove')"
             >
               Eliminar alumno
             </button>
@@ -103,8 +104,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
+import { useDialogPluginComponent } from 'quasar';
 import { StudentDoc } from 'src/models/Student';
+import { useStudentsStore } from 'src/stores/students-store';
 import { formatMoney } from 'src/utils/money';
 import { ageFrom, formatShortDate } from 'src/utils/dates';
 import {
@@ -115,41 +118,56 @@ import {
   whatsappLink,
 } from 'src/utils/subscription';
 
-const props = defineProps<{
-  modelValue: boolean;
-  student: StudentDoc | null;
-}>();
+// Acción elegida en la hoja: la página decide qué hacer con ella.
+export type StudentDetailAction = {
+  action: 'pay' | 'edit' | 'remove';
+  student: StudentDoc;
+};
 
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: boolean): void;
-  (e: 'pay', student: StudentDoc): void;
-  (e: 'edit', student: StudentDoc): void;
-  (e: 'remove', student: StudentDoc): void;
-}>();
+// Se abre con $q.dialog({ component: StudentDetailSheet, componentProps:
+// { studentId } }). Recibe el id y lee el alumno en vivo del store, así los
+// datos nunca quedan desactualizados mientras la hoja está abierta.
+const props = defineProps<{ studentId: string }>();
 
-const open = computed({
-  get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value),
+defineEmits([...useDialogPluginComponent.emits]);
+const { dialogRef, onDialogHide, onDialogOK } = useDialogPluginComponent();
+
+const studentsStore = useStudentsStore();
+
+const student = computed(
+  () => studentsStore.students.find((s) => s._id === props.studentId) ?? null
+);
+
+// Si el alumno desaparece (eliminado desde otro dispositivo), la hoja se cierra.
+watch(student, (value) => {
+  if (!value) dialogRef.value?.hide();
 });
 
-const status = computed(() => (props.student ? getStatus(props.student.paidThrough) : 'al_dia'));
+const act = (action: StudentDetailAction['action']) => {
+  if (!student.value) return;
+  onDialogOK({ action, student: student.value } satisfies StudentDetailAction);
+};
+
+const status = computed(() =>
+  student.value ? getStatus(student.value.paidThrough) : 'al_dia'
+);
 const statusLabel = computed(() => STATUS_LABEL[status.value]);
-const due = computed(() => (props.student ? dueLabel(props.student.paidThrough) : ''));
-const fee = computed(() => formatMoney(props.student?.monthlyFee ?? 0));
+const due = computed(() => (student.value ? dueLabel(student.value.paidThrough) : ''));
+const fee = computed(() => formatMoney(student.value?.monthlyFee ?? 0));
 const paidThrough = computed(() =>
-  props.student ? formatShortDate(props.student.paidThrough, true) : ''
+  student.value ? formatShortDate(student.value.paidThrough, true) : ''
 );
 const startDate = computed(() =>
-  props.student ? formatShortDate(props.student.startDate, true) : ''
+  student.value ? formatShortDate(student.value.startDate, true) : ''
 );
 
 const ageLabel = computed(() => {
-  const age = ageFrom(props.student?.birthDate ?? '');
+  const age = ageFrom(student.value?.birthDate ?? '');
   return age === null ? '—' : `${age} ${age === 1 ? 'año' : 'años'}`;
 });
 
 const initials = computed(() =>
-  (props.student?.name ?? '')
+  (student.value?.name ?? '')
     .split(/\s+/)
     .filter(Boolean)
     .slice(0, 2)
@@ -158,10 +176,10 @@ const initials = computed(() =>
 );
 
 const whatsapp = computed(() => {
-  if (!props.student?.phone.trim()) return '';
+  if (!student.value?.phone.trim()) return '';
   return whatsappLink(
-    props.student.phone,
-    reminderMessage(props.student.name.split(/\s+/)[0] ?? '', due.value)
+    student.value.phone,
+    reminderMessage(student.value.name.split(/\s+/)[0] ?? '', due.value)
   );
 });
 </script>

@@ -28,24 +28,24 @@
             label="Recaudado"
             :value="formatMoney(paymentsStore.collected)"
             clickable
-            @click="cashSheetOpen = true"
+            @click="openCashSheet"
           />
           <stat-card
             label="Piscina"
             :value="`−${formatMoney(paymentsStore.poolCost)}`"
             clickable
-            @click="cashSheetOpen = true"
+            @click="openCashSheet"
           />
           <stat-card
             label="Neto"
             :value="formatMoney(paymentsStore.net)"
             accent
             clickable
-            @click="cashSheetOpen = true"
+            @click="openCashSheet"
           />
         </div>
 
-        <button type="button" class="students__cash-link" @click="cashSheetOpen = true">
+        <button type="button" class="students__cash-link" @click="openCashSheet">
           Ver caja del mes
           <q-icon name="sym_o_chevron_right" size="16px" />
         </button>
@@ -165,15 +165,6 @@
       />
     </q-page-sticky>
 
-    <student-form-dialog v-model="studentDialog" :student="editingStudent" />
-    <student-detail-sheet
-      v-model="detailDialog"
-      :student="selectedStudent"
-      @pay="confirmPayment"
-      @edit="openStudentForm"
-      @remove="confirmRemove"
-    />
-    <cash-sheet v-model="cashSheetOpen" />
   </q-page>
 </template>
 
@@ -186,6 +177,7 @@ import StatCard from 'src/components/StatCard.vue';
 import StudentRow from 'src/components/StudentRow.vue';
 import StudentFormDialog from 'src/components/StudentFormDialog.vue';
 import StudentDetailSheet from 'src/components/StudentDetailSheet.vue';
+import type { StudentDetailAction } from 'src/components/StudentDetailSheet.vue';
 import CashSheet from 'src/components/CashSheet.vue';
 import { useAuthStore } from 'src/stores/auth-store';
 import { useStudentsStore } from 'src/stores/students-store';
@@ -215,7 +207,6 @@ const onLogout = async () => {
 
 const activeFilter = ref<FilterKey>('todos');
 const search = ref('');
-const cashSheetOpen = ref(false);
 
 const statusOf = (student: StudentDoc) => getStatus(student.paidThrough);
 
@@ -250,24 +241,31 @@ const visibleStudents = computed(() => {
     });
 });
 
-const studentDialog = ref(false);
-const editingStudent = ref<StudentDoc | null>(null);
-const detailDialog = ref(false);
-const selectedStudent = ref<StudentDoc | null>(null);
-
+// Todos los diálogos se abren con el plugin ($q.dialog): se montan al
+// abrirse y se destruyen al cerrarse, sin estado de visibilidad en la página.
 const openStudentForm = (student?: StudentDoc) => {
-  detailDialog.value = false;
-  editingStudent.value = student ?? null;
-  studentDialog.value = true;
+  $q.dialog({
+    component: StudentFormDialog,
+    componentProps: { student: student ?? null },
+  });
 };
 
 const openDetail = (student: StudentDoc) => {
-  selectedStudent.value = student;
-  detailDialog.value = true;
+  $q.dialog({
+    component: StudentDetailSheet,
+    componentProps: { studentId: student._id },
+  }).onOk(({ action, student: chosen }: StudentDetailAction) => {
+    if (action === 'pay') confirmPayment(chosen);
+    else if (action === 'edit') openStudentForm(chosen);
+    else confirmRemove(chosen);
+  });
+};
+
+const openCashSheet = () => {
+  $q.dialog({ component: CashSheet });
 };
 
 const confirmPayment = (student: StudentDoc) => {
-  detailDialog.value = false;
   const coversUntil = formatShortDate(coverageAfterPayment(student), true);
   $q.dialog({
     title: 'Registrar pago',
@@ -286,7 +284,6 @@ const confirmPayment = (student: StudentDoc) => {
 };
 
 const confirmRemove = (student: StudentDoc) => {
-  detailDialog.value = false;
   $q.dialog({
     title: 'Eliminar alumno',
     message: `Se elimina a ${student.name} de la lista. Sus pagos registrados se conservan.`,

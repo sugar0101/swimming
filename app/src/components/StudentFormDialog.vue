@@ -1,10 +1,11 @@
 <template>
   <q-dialog
-    v-model="open"
+    ref="dialogRef"
     maximized
     transition-show="slide-up"
     transition-hide="slide-down"
     :transition-duration="380"
+    @hide="onDialogHide"
   >
     <q-card class="student-form">
       <!-- Barra superior fija: cerrar + título. -->
@@ -201,63 +202,38 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from 'vue';
-import { useQuasar } from 'quasar';
+import { computed, reactive, ref } from 'vue';
+import { useDialogPluginComponent, useQuasar } from 'quasar';
 import { StudentDoc, StudentInput } from 'src/models/Student';
 import { useStudentsStore } from 'src/stores/students-store';
 import { addMonthsIso, ageFrom, formatShortDate, todayIso } from 'src/utils/dates';
 import { dueLabel, getStatus, STATUS_LABEL } from 'src/utils/subscription';
 
-const props = defineProps<{
-  modelValue: boolean;
-  student?: StudentDoc | null;
-}>();
+// Se abre con $q.dialog({ component: StudentFormDialog, componentProps }):
+// el componente se monta fresco en cada apertura, así el estado nace del
+// alumno recibido (o vacío para uno nuevo) sin watchers de reseteo.
+const props = defineProps<{ student?: StudentDoc | null }>();
 
-const emit = defineEmits<{ (e: 'update:modelValue', value: boolean): void }>();
+defineEmits([...useDialogPluginComponent.emits]);
+const { dialogRef, onDialogHide, onDialogOK } = useDialogPluginComponent();
 
 const $q = useQuasar();
 const studentsStore = useStudentsStore();
 
-const open = computed({
-  get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value),
-});
-
 const isEdit = computed(() => !!props.student);
 const today = todayIso();
 
-const emptyForm = (): StudentInput => ({
-  name: '',
-  phone: '',
-  document: '',
-  birthDate: '',
-  startDate: todayIso(),
-  monthlyFee: 170000,
+const form = reactive<StudentInput>({
+  name: props.student?.name ?? '',
+  phone: props.student?.phone ?? '',
+  document: props.student?.document ?? '',
+  birthDate: props.student?.birthDate ?? '',
+  startDate: props.student?.startDate ?? todayIso(),
+  monthlyFee: props.student?.monthlyFee ?? 170000,
   paid: true,
 });
-
-const form = reactive<StudentInput>(emptyForm());
-const paidThrough = ref('');
+const paidThrough = ref(props.student?.paidThrough ?? '');
 const saving = ref(false);
-
-watch(
-  () => props.modelValue,
-  (value) => {
-    if (!value) return;
-    const source = props.student;
-    Object.assign(form, emptyForm());
-    paidThrough.value = '';
-    if (source) {
-      form.name = source.name;
-      form.phone = source.phone;
-      form.document = source.document;
-      form.birthDate = source.birthDate;
-      form.startDate = source.startDate;
-      form.monthlyFee = source.monthlyFee;
-      paidThrough.value = source.paidThrough;
-    }
-  }
-);
 
 const ageLabel = computed(() => {
   const age = ageFrom(form.birthDate);
@@ -292,7 +268,7 @@ const submit = async () => {
       await studentsStore.addStudent({ ...form });
       $q.notify({ message: `${form.name.trim()} agregado`, color: 'positive' });
     }
-    open.value = false;
+    onDialogOK();
   } catch (error) {
     console.error(error);
     $q.notify({
