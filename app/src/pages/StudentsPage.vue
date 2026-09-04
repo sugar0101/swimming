@@ -497,7 +497,10 @@ const confirmRemove = (student: StudentDoc) => {
 }
 
 .students__list {
-  margin-top: 8px;
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .students__skeleton {

@@ -414,6 +414,7 @@ const whatsapp = computed(() => {
   gap: 12px;
   margin: 0 0 20px;
   padding: 16px;
+  border: 1px solid var(--sw-border);
   border-radius: var(--sw-radius-md);
   background: var(--sw-surface-2);
 
@@ -465,27 +466,30 @@ const whatsapp = computed(() => {
   color: var(--sw-text-2);
 }
 
+// Cada sesión es una tarjeta con borde gris suave.
 .detail__session {
   display: flex;
   align-items: center;
   gap: 10px;
   width: 100%;
-  padding: 12px 0;
-  border: 0;
-  border-bottom: 1px solid var(--sw-border);
-  background: transparent;
+  margin-top: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--sw-border);
+  border-radius: var(--sw-radius-md);
+  background: var(--sw-bg);
+  box-shadow: 0 1px 2px rgba(17, 24, 39, 0.04);
   font: inherit;
   text-align: left;
   cursor: pointer;
+  transition: border-color 120ms var(--sw-ease);
 
-  &:last-child {
-    border-bottom: 0;
+  &:hover {
+    border-color: var(--sw-border-strong);
   }
 
   &:focus-visible {
     outline: 2px solid var(--sw-primary);
     outline-offset: 2px;
-    border-radius: 6px;
   }
 }
 

@@ -69,33 +69,31 @@ const initials = computed(() =>
 </script>
 
 <style scoped lang="scss">
+// Tarjeta: blanco, borde gris suave y esquinas redondeadas.
 .student-row {
   width: 100%;
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 14px 4px;
-  border: 0;
-  border-bottom: 1px solid var(--sw-border);
-  background: transparent;
+  padding: 14px;
+  border: 1px solid var(--sw-border);
+  border-radius: var(--sw-radius-md);
+  background: var(--sw-bg);
+  box-shadow: 0 1px 2px rgba(17, 24, 39, 0.04);
   text-align: left;
   font: inherit;
   color: inherit;
   cursor: pointer;
-  transition: background 120ms var(--sw-ease);
-
-  &:last-child {
-    border-bottom: 0;
-  }
+  transition: border-color 120ms var(--sw-ease), background 120ms var(--sw-ease);
 
   &:hover {
+    border-color: var(--sw-border-strong);
     background: var(--sw-surface-2);
   }
 
   &:focus-visible {
     outline: 2px solid var(--sw-primary);
-    outline-offset: -2px;
-    border-radius: 10px;
+    outline-offset: 2px;
   }
 }
 

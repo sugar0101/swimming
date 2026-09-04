@@ -264,6 +264,7 @@ const confirmRemovePayment = (payment: PaymentDoc) => {
 
 .cash__net {
   padding: 16px;
+  border: 1px solid var(--sw-border);
   border-radius: var(--sw-radius-md);
   background: var(--sw-surface-2);
 }
@@ -340,16 +341,17 @@ const confirmRemovePayment = (payment: PaymentDoc) => {
   color: var(--sw-text-2);
 }
 
+// Cada pago es una tarjeta con borde gris suave.
 .cash__row {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--sw-border);
-
-  &:last-child {
-    border-bottom: 0;
-  }
+  margin-top: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--sw-border);
+  border-radius: var(--sw-radius-md);
+  background: var(--sw-bg);
+  box-shadow: 0 1px 2px rgba(17, 24, 39, 0.04);
 }
 
 .cash__row-body {
